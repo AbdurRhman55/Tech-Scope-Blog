@@ -1,0 +1,95 @@
+
+name: Tech-Scope-Blog Safe Deployment Check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tech-scope-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  dry-run:
+    name: Verify deployment without changing live files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      HOSTINGER_SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+      HOSTINGER_SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+      HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+      HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+      HOSTINGER_SSH_KNOWN_HOSTS: ${{ secrets.HOSTINGER_SSH_KNOWN_HOSTS }}
+      HOSTINGER_DEPLOY_PATH: ${{ secrets.HOSTINGER_DEPLOY_PATH }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in \
+            HOSTINGER_SSH_HOST \
+            HOSTINGER_SSH_USER \
+            HOSTINGER_SSH_PORT \
+            HOSTINGER_SSH_PRIVATE_KEY \
+            HOSTINGER_SSH_KNOWN_HOSTS \
+            HOSTINGER_DEPLOY_PATH
+          do
+            if [ -z "${!name:-}" ]; then
+              echo "Missing GitHub secret: $name"
+              exit 1
+            fi
+          done
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$HOSTINGER_SSH_PRIVATE_KEY" \
+            > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$HOSTINGER_SSH_KNOWN_HOSTS" \
+            > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Verify remote directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh \
+            -p "$HOSTINGER_SSH_PORT" \
+            -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "$HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST" \
+            "test -d '$HOSTINGER_DEPLOY_PATH' &&
+             test -d '$HOSTINGER_DEPLOY_PATH/config' &&
+             echo 'Remote website and config directories exist.'"
+
+      - name: Preview file changes only
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -avzn --itemize-changes \
+            -e "ssh -p $HOSTINGER_SSH_PORT -i $HOME/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes" \
+            --exclude='/.git/' \
+            --exclude='/.github/' \
+            --exclude='/config/config.php' \
+            --exclude='/config/database.hosting.php' \
+            --exclude='/assets/uploads/***' \
+            --exclude='/database.sql' \
+            --exclude='*.sql' \
+            --exclude='*.sql.gz' \
+            --exclude='*.bak' \
+            --exclude='/backups/***' \
+            --exclude='/logs/***' \
+            --exclude='*.log' \
+            ./ \
+            "$HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST:$HOSTINGER_DEPLOY_PATH/"
