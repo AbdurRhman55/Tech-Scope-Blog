@@ -1,19 +1,18 @@
 <?php
 /**
- * ---------------------------------------------------------------------
- *  PDO database connection (singleton)
- * ---------------------------------------------------------------------
- */
+* ---------------------------------------------------------------------
+*  PDO database connection ( singleton )
+* ---------------------------------------------------------------------
+*/
 
-declare(strict_types=1);
+declare( strict_types = 1 );
 
 require_once __DIR__ . '/config.php';
 
-function db(): PDO
-{
+function db(): PDO {
     static $pdo = null;
 
-    if ($pdo instanceof PDO) {
+    if ( $pdo instanceof PDO ) {
         return $pdo;
     }
 
@@ -23,18 +22,18 @@ function db(): PDO
     );
 
     try {
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+        $pdo = new PDO( $dsn, DB_USER, DB_PASS, [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
             PDO::ATTR_STRINGIFY_FETCHES  => false,
-        ]);
-    } catch (PDOException $e) {
-        if (DEBUG) {
-            die('Database connection failed: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES));
+        ] );
+    } catch ( PDOException $e ) {
+        if ( DEBUG ) {
+            die( 'Database connection failed: ' . htmlspecialchars( $e->getMessage(), ENT_QUOTES ) );
         }
-        http_response_code(500);
-        die('Service temporarily unavailable.');
+        http_response_code( 500 );
+        die( 'Service temporarily unavailable.' );
     }
 
     return $pdo;

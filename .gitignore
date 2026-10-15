@@ -24,3 +24,6 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+# Live hosting credentials (upload this separately to the web host)
+/config/database.hosting.php
