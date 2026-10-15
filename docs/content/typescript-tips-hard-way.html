@@ -1,0 +1,302 @@
+<p>Most TypeScript pain comes from fighting the compiler instead of letting it change how you model data. The tips below are the ones newcomers learn the hard way — each with a before/after pair, the failure it prevents, and the setting that turns it on.</p>
+<p><strong>The direct answer:</strong> enable <code>strict</code> mode on day one, model states as a discriminated union instead of a pile of booleans, treat every index and every network response as <code>undefined</code> or <code>unknown</code> until proven otherwise, and stop silencing the compiler with <code>any</code>, <code>!</code> and <code>as</code>. The goal is not fewer types — it is fewer production incidents. The samples here are illustrative snippets written to show compiler behavior, not transcripts of a run.</p>
+
+<h2>Turn on strict mode first</h2>
+<p><code>strictNullChecks</code> alone eliminates a whole class of runtime surprises. Endure a couple of days of red squiggles: that is the compiler showing you where your code already assumed a value existed.</p>
+
+<p><strong>Before</strong> — permissive defaults, where "maybe missing" is silently the same as "present":</p>
+<pre><code>{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler"
+  }
+}</code></pre>
+
+<p><strong>After</strong> — the settings that pay for themselves in the first week:</p>
+<pre><code>{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true
+  }
+}</code></pre>
+
+<p>Under <code>strict</code>, optional properties become visible to the compiler:</p>
+
+<p><strong>Before</strong> — compiles without complaint, fails at runtime on the first user without a name:</p>
+<pre><code>function displayName(user: { name?: string }): string {
+  return user.name.toUpperCase();
+}</code></pre>
+
+<p><strong>After</strong> — the missing value is handled in the type, at the point of use:</p>
+<pre><code>function displayName(user: { name?: string }): string {
+  return (user.name ?? "Anonymous").toUpperCase();
+}</code></pre>
+
+<ul>
+<li><code>strict</code> bundles the important flags, including <code>strictNullChecks</code> and <code>noImplicitAny</code>.</li>
+<li><code>noUncheckedIndexedAccess</code> adds <code>undefined</code> to every index signature — the single most under-rated option in the compiler.</li>
+<li>Migrating a legacy codebase? Turn on <code>strictNullChecks</code> first, module by module, rather than flipping every flag at once and stalling the team.</li>
+<li>Write new code with the flags already on; a codebase that grows without <code>strict</code> accumulates assumptions that get expensive to unwind.</li>
+</ul>
+
+<h2>Model state with discriminated unions</h2>
+<p>A request is loading, success or error — never all three. Discriminated unions make the compiler enforce your state machine, instead of letting impossible combinations compile.</p>
+
+<p><strong>Before</strong> — four independent fields, and every combination of them is legal to the type system, including the ones that make no sense:</p>
+<pre><code>interface RequestState {
+  isLoading: boolean;
+  isError: boolean;
+  data: Post[] | null;
+  errorMessage: string | null;
+}
+// isLoading: true, isError: true, data: [Post], errorMessage: "boom"
+// nothing stops a caller from building this</code></pre>
+
+<p><strong>After</strong> — one field decides which shape the value has:</p>
+<pre><code>type RequestState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; posts: Post[] }
+  | { status: "error"; message: string };
+
+function banner(state: RequestState): string {
+  switch (state.status) {
+    case "idle":
+      return "Nothing loaded yet";
+    case "loading":
+      return "Loading\u2026";
+    case "success":
+      return `${state.posts.length} posts`;
+    case "error":
+      return state.message;
+  }
+}</code></pre>
+
+<p>Inside each <code>case</code>, TypeScript knows exactly which fields exist: <code>state.posts</code> is legal only where it is real, and <code>state.message</code> only where it is guaranteed. Add a fifth status and every <code>switch</code> that must handle all of them fails to compile until you deal with it.</p>
+
+<figure><img src="/assets/img/diagrams/typescript-tips-union-states.svg" alt="Diagram: a single state variable with a status discriminant fans out into loading, success and error variants, each carrying only the fields that belong to it"><figcaption>The discriminant <code>state.status</code> tells the compiler which of the three shapes you are holding, so impossible states stop compiling.</figcaption></figure>
+
+<ul>
+<li>Give every union a literal discriminant — <code>status</code>, <code>kind</code>, <code>type</code> — never a boolean you have to correlate by hand.</li>
+<li>Put the data each state needs inside that variant; shared fields are still fine, extra fields are not.</li>
+<li>Pair the union with an exhaustiveness check (<code>never</code>) if you prefer the compiler to force a default branch.</li>
+<li>This same shape models domain events, form states and WebSocket messages — anywhere a value is "one of these, and the others are invalid".</li>
+</ul>
+
+<h2>Array footguns</h2>
+<p>Arrays are where false confidence hides: indexing never fails at the type level unless you ask it to, and empty arrays are perfectly legal in types that promise elements.</p>
+
+<p><strong>Before</strong> — typed as a <code>number</code> it does not have to be:</p>
+<pre><code>function firstOrderTotal(orders: Order[]): number {
+  return orders[0].amount; // no compile error; throws on an empty array
+}</code></pre>
+
+<p><strong>After</strong> — two honest versions, depending on what empty means in your domain:</p>
+<pre><code>// empty is a legitimate answer
+function firstOrderTotal(orders: Order[]): number | undefined {
+  return orders[0]?.amount;
+}
+
+// empty is a programming error
+function requireFirstOrderTotal(orders: Order[]): number {
+  const first = orders[0];
+  if (first === undefined) {
+    throw new Error("orders must not be empty");
+  }
+  return first.amount;
+}</code></pre>
+
+<ul>
+<li><code>Array.at(-1)</code> returns <code>T | undefined</code> — always, because the index may be past the end. Handle it with <code>??</code> or a guard, not with <code>!</code>.</li>
+<li>Never index with <code>noUncheckedIndexedAccess</code> off in real projects; that option is what makes <code>orders[0]</code> read as <code>Order | undefined</code>.</li>
+<li><code>find()</code> also returns <code>T | undefined</code>. So does <code>pop()</code>, and so do lookups into records: indexing a <code>Record&lt;string, T&gt;</code> yields <code>T | undefined</code> under the same flag.</li>
+<li><code>filter(Boolean)</code> does not narrow an array to non-empty values — the result is still typed as the same element type, and the compiler will not tell you the list is non-empty.</li>
+<li>If a function must never receive an empty list, say so in the parameter type (<code>[Order, ...Order[]]</code>) or check at runtime and throw.</li>
+</ul>
+
+<p>Details of the method itself are documented on <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at" rel="external noopener">MDN's <code>Array.at()</code> reference</a>.</p>
+
+<h2>Treat outside data as unknown</h2>
+<p>Everything from outside your program — request bodies, <code>localStorage</code>, third-party APIs, <code>JSON.parse</code> — arrives without types. TypeScript's types are erased at build time, so nothing validates a network response just because you annotated it.</p>
+
+<p><strong>Before</strong> — a cast that silences the compiler instead of checking the data:</p>
+<pre><code>const config = JSON.parse(raw) as Config;
+config.theme.darkMode = true; // compiles; throws if the stored shape is different</code></pre>
+
+<p><strong>After</strong> — parse into <code>unknown</code>, validate the shape, then let narrowing do the rest:</p>
+<pre><code>type Config = { theme: "light" | "dark"; retries: number };
+
+function parseConfig(raw: string): Config {
+  const value: unknown = JSON.parse(raw);
+
+  if (typeof value !== "object" || value === null) {
+    throw new Error("config must be an object");
+  }
+
+  const { theme, retries } = value as { theme?: unknown; retries?: unknown };
+
+  if (theme !== "light" &amp;&amp; theme !== "dark") {
+    throw new Error("theme must be light or dark");
+  }
+  if (typeof retries !== "number") {
+    throw new Error("retries must be a number");
+  }
+
+  return { theme, retries };
+}</code></pre>
+
+<ul>
+<li><code>any</code> disables the compiler for that value and everything it touches; <code>unknown</code> forces you to prove the shape before use.</li>
+<li>One cast of <code>unknown</code> to a structural shape, immediately followed by validation, is legitimate. A cast that jumps straight to your domain type is a comment, not a check.</li>
+<li>Validate once, at the boundary, and pass the typed value inward — internal code should never need to re-check the same field.</li>
+<li>The same rule covers HTML forms, query strings and message queues. Annotating the variable does not make the bytes conform.</li>
+</ul>
+
+<h2>Retire the non-null assertion</h2>
+<p>The <code>!</code> operator says "trust me" to the compiler and erases the exact warning you will need later. It converts a possible runtime crash into a silent one.</p>
+
+<p><strong>Before</strong> — both assertions compile, and neither is checked:</p>
+<pre><code>// users: User[] where User = { id: string; profile: { bio: string } }
+function showProfile(id: string): string {
+  const user = users.find((u) =&gt; u.id === id)!;
+  return user.profile.bio;
+}</code></pre>
+
+<p><strong>After</strong> — the miss becomes a branch you can test and reason about:</p>
+<pre><code>function showProfile(id: string): string {
+  const user = users.find((u) =&gt; u.id === id);
+
+  if (!user) {
+    throw new Error(`no user with id ${id}`);
+  }
+
+  return user.profile.bio;
+}</code></pre>
+
+<ul>
+<li>Throw, return a default, or narrow — but make the missing-value path visible in the code.</li>
+<li>If a function returns <code>T | undefined</code> and you assert at every call site, the union was the wrong return type: fix it at the source.</li>
+<li>Code review heuristic: every <code>!</code> is a question someone decided not to answer.</li>
+</ul>
+
+<h2>Narrow instead of casting</h2>
+<p><code>as</code> replaces the compiler's knowledge with your assertion. A type guard replaces it with a check the compiler can verify.</p>
+
+<p><strong>Before</strong> — the classic DOM workaround, which lies whenever the event came from somewhere else:</p>
+<pre><code>function onInput(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  input.value = ""; // compiles even if target is not an input
+}</code></pre>
+
+<p><strong>After</strong> — <code>instanceof</code> narrows the type and eliminates <code>null</code> at the same time:</p>
+<pre><code>function onInput(event: Event): void {
+  if (!(event.currentTarget instanceof HTMLInputElement)) {
+    return;
+  }
+
+  event.currentTarget.value = ""; // typed as HTMLInputElement, checked at runtime
+}</code></pre>
+
+<ul>
+<li>Prefer <code>typeof</code>, <code>instanceof</code>, <code>"key" in value</code>, or a literal comparison on a discriminant over <code>as</code>.</li>
+<li>Use <code>satisfies</code> when you want to check a value against a type without changing its inferred, more specific type.</li>
+<li>Assertions belong at trust boundaries you have already validated — not in the middle of business logic.</li>
+</ul>
+
+<h2>Freeze constants with as const and readonly</h2>
+<p><code>const</code> only protects the binding. The object or array it points at is still mutable, which is why "constants" get quietly rewritten three files away.</p>
+
+<p><strong>Before</strong> — declared once, changed anywhere:</p>
+<pre><code>const config = { retries: 3, regions: ["eu", "us"] };
+config.retries = 99; // no error: only the binding was constant
+const list: string[] = ["a"];
+list.push("z"); // also fine</code></pre>
+
+<p><strong>After</strong> — literal types captured, mutation rejected:</p>
+<pre><code>const config = { retries: 3, regions: ["eu", "us"] } as const;
+config.retries = 99; // error: Cannot assign to 'retries' — read-only
+
+type Status = "idle" | "loading" | "done";
+const queue: readonly Status[] = ["idle"];
+queue.push("done"); // error: push does not exist on readonly arrays
+
+function print(config: Readonly&lt;Config&gt;): void {
+  // ...
+}</code></pre>
+
+<ul>
+<li><code>as const</code> on a literal also gives you literal types — handy for maps keyed by a fixed set of strings.</li>
+<li><code>readonly</code> on parameters and properties documents intent that callers can rely on.</li>
+<li>Freezing is shallow: nested objects still need <code>readonly</code> in their own type, or <code>Object.freeze()</code> at runtime if you truly need enforcement.</li>
+</ul>
+
+<h2>Write types at the boundaries, infer everywhere else</h2>
+<p>Explicit annotations matter most where code meets the outside world or where other teams import your work. Inside a function, inference is usually better: it follows from the expression, so it cannot drift.</p>
+
+<p><strong>Before</strong> — annotations that add noise and can lie after a refactor:</p>
+<pre><code>const userName: string = "ada";           // inference already knew
+let count: number = 0;                    // same
+function items(): Order[] {
+  return load().map((row) =&gt; row as Order); // asserting instead of parsing
+}</code></pre>
+
+<p><strong>After</strong> — annotate what others depend on, infer the rest:</p>
+<pre><code>function clampPercent(value: number): number {
+  const rounded = Math.round(value);
+  return Math.min(Math.max(rounded, 0), 100);
+}
+
+export function formatDiscount(value: number): string {  // return type written down
+  return `${clampPercent(value)}% off`;
+}</code></pre>
+
+<ul>
+<li>Annotate exported function signatures: a public return type should not change because an internal helper changed.</li>
+<li>Annotate function parameters — otherwise <code>noImplicitAny</code> errors in strict mode anyway.</li>
+<li>Leave local variables to inference; the compiler reads the initializer you just wrote.</li>
+<li>Reach for generics only when you have at least two concrete uses; a premature generic is a type system you must now maintain.</li>
+</ul>
+
+<h2>Quick reference: trap, fix, setting</h2>
+<table>
+<thead>
+<tr><th>Situation</th><th>The trap</th><th>The fix</th></tr>
+</thead>
+<tbody>
+<tr><td>Optional field read without a check</td><td>Compiles while strict mode is off; throws later</td><td><code>strict: true</code> plus <code>??</code> or a guard</td></tr>
+<tr><td>Indexing an array or record</td><td>Typed as <code>T</code> when <code>T | undefined</code> is the truth</td><td><code>noUncheckedIndexedAccess</code> and optional chaining</td></tr>
+<tr><td>API response, form data, <code>JSON.parse</code></td><td><code>any</code> accepted silently</td><td>Parse as <code>unknown</code>, validate, then narrow</td></tr>
+<tr><td>"I know this exists" in a hurry</td><td><code>!</code> and <code>as</code> delete the warning</td><td>Early return, throw, or <code>instanceof</code> guard</td></tr>
+<tr><td>Loading / success / error UI</td><td>Boolean fields allow impossible combinations</td><td>Discriminated union on a literal <code>status</code></td></tr>
+<tr><td>Config and constant data</td><td><code>const</code> still allows mutation inside</td><td><code>as const</code>, <code>readonly</code>, <code>Readonly&lt;T&gt;</code></td></tr>
+<tr><td>Exported API surface</td><td>Return types drift with internal refactors</td><td>Annotate boundaries; infer local values</td></tr>
+</tbody>
+</table>
+
+<h2>When types get in your way</h2>
+<p>Honest limits, so strict mode does not turn into a fight:</p>
+<ul>
+<li><strong>Types are erased at runtime.</strong> A perfect <code>Config</code> annotation cannot make a malformed server response valid — validate at the boundary or the type is fiction.</li>
+<li><strong>Whole-project flags, incremental adoption.</strong> <code>strict</code> is a compiler-wide switch; on a large legacy codebase, enable pieces (often <code>strictNullChecks</code> first) and fix by module instead of freezing feature work.</li>
+<li><strong>Deeply dynamic data resists precise types.</strong> Parsers and schema-validation libraries exist for this reason; hand-rolling exhaustiveness for recursive JSON is usually the wrong trade.</li>
+<li><strong>Over-annotation slows you down.</strong> If you are typing what inference already knows, you are writing maintenance, not safety.</li>
+<li><strong>Generics used too early become a maze.</strong> Start concrete; abstract when the second use case arrives.</li>
+<li><strong>Type-level cleverness has a reader cost.</strong> A slightly looser type with a clear name beats a conditional type nobody on the team can explain.</li>
+</ul>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>Turn on <code>strict</code> (and <code>noUncheckedIndexedAccess</code>) before the codebase accumulates assumptions you have to unwind.</li>
+<li>Model "one of several states" as a discriminated union so impossible combinations stop compiling.</li>
+<li>Indexing, <code>.at()</code>, <code>find()</code> and <code>pop()</code> all yield possibly-missing values; handle them with narrowing, not assertions.</li>
+<li>Data from outside is <code>unknown</code> until validated — a cast is not a check.</li>
+<li>Replace <code>!</code> and <code>as</code> with guards, and <code>const</code> object literals with <code>as const</code> / <code>readonly</code>.</li>
+<li>Annotate the boundaries other people depend on; let inference handle the middle.</li>
+</ul>
+
+<p>The goal is not fewer types — it is fewer production incidents. Start with one change today: add <code>"strict": true</code> to your <code>tsconfig.json</code> and read what the compiler points at. Then keep the habit going on the rest of the codebase with the discipline described in <a href="/post/clean-code-php-patterns">clean code patterns for PHP</a>, and make sure each of these fixes lands as a small, reviewable change under the <a href="/post/git-workflows-team-scale">short-branch workflow</a>.</p>

@@ -1,0 +1,481 @@
+/* =====================================================================
+ *  TechScope — Tailwind v4 source  (compiled with standalone CLI)
+ *  Compile:  tools\tailwindcss.exe -i assets\css\source.css -o assets\css\app.css --minify
+ * ===================================================================== */
+
+@import "tailwindcss";
+
+/* Scan all PHP/JS for utility classes */
+@source "../../**/*.php";
+@source "../../assets/js/*.js";
+
+/*
+ * Force-generate classes used inside Alpine.js :class bindings
+ * (Tailwind v4 cannot scan runtime-only strings)
+ */
+@source inline("translate-x-full translate-x-0 opacity-0 opacity-100 scale-x-0 backdrop-blur-sm bg-ink/40 bg-accent/5 bg-accent/8 bg-white/10 bg-white/15 bg-paper/6 bg-paper/8 bg-paper/9 border-accent border-paper/8 border-paper/12 border-paper/15 translate-y-[7px] -translate-y-[7px] rotate-45 -rotate-45 rotate-180 -translate-y-1 -translate-y-2 fixed inset-0 inset-y-0 right-0 z-[55] z-[58] z-[60] max-w-sm w-[min(88vw,22rem)] flex-col overflow-y-auto pointer-events-none origin-center duration-[350ms] duration-[250ms]");
+
+/* ---------------------------------------------------------------------
+ *  Design tokens
+ * --------------------------------------------------------------------- */
+@theme {
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "Manrope", "Helvetica Neue", sans-serif;
+
+  --color-paper: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-ink: #101319;
+  --color-ink-soft: #262b36;
+  --color-muted: #6b7280;
+  --color-line: #e5e1d8;
+  --color-line-soft: #efece5;
+  --color-primary: #1f4fd8;
+  --color-primary-dark: #163aa6;
+  --color-primary-soft: #e8edfc;
+  --color-accent: #e8402a;
+  --color-accent-soft: #fdeae6;
+  --color-gold: #c9a227;
+}
+
+/* ---------------------------------------------------------------------
+ *  Base
+ * --------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* ---- Accessibility: skip link (visible only on keyboard focus) ---- */
+  .skip-link {
+    position: fixed;
+    top: -120%;
+    left: 1rem;
+    z-index: 100;
+    border-radius: 0.5rem;
+    background: var(--color-ink, #101319);
+    color: #fff;
+    padding: 0.65rem 1.1rem;
+    font-size: 0.85rem;
+    font-weight: 800;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus-visible { top: 1rem; }
+  main:focus { outline: none; }
+
+  /* thin scrollbars for horizontal scrollers */
+  .scroll-x {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  .scroll-x::-webkit-scrollbar { height: 6px; }
+  .scroll-x::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 99px; }
+  .scroll-x::-webkit-scrollbar-track { background: transparent; }
+
+  /* hide scrollbar line, keep scroll working (sidebar etc.) */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* page-level scroll line removed — wheel / touch / keys still scroll */
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+  /* inner scroll areas — slim "floating pill" thumb, quiet until hovered */
+  body * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(16 19 25 / 0.25) transparent;
+  }
+  body *::-webkit-scrollbar { width: 8px; height: 8px; }
+  body *::-webkit-scrollbar-track { background: transparent; }
+  body *::-webkit-scrollbar-thumb {
+    background: rgb(16 19 25 / 0.25);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    border-radius: 99px;
+  }
+  body *::-webkit-scrollbar-thumb:hover { background: rgb(16 19 25 / 0.45); background-clip: padding-box; }
+
+  /* Alpine.js — hide x-show elements until Alpine boots (no flash) */
+  [x-cloak] { display: none !important; }
+}
+
+/* ---------------------------------------------------------------------
+ *  Components
+ * --------------------------------------------------------------------- */
+@layer components {
+  /* ---- Editorial display sizes ---- */
+  .headline-xl {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5.4vw, 4.4rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+  }
+
+  .headline-lg {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .headline-md {
+    font-family: var(--font-display);
+    font-size: clamp(1.45rem, 2.2vw, 1.9rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+  }
+
+  /* Eyebrow / kicker label */
+  .kicker {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* ---- Section header with hairline rule ---- */
+  .section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--color-line);
+    padding-bottom: 1.1rem;
+  }
+  .section-head .more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+    transition: color 0.2s, gap 0.2s;
+  }
+  .section-head .more:hover { color: var(--color-accent); gap: 0.7rem; }
+
+  /* ---- Rule ornament (kicker with lines) ---- */
+  .rule-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .rule-label::before,
+  .rule-label::after {
+    content: "";
+    height: 1px;
+    width: 2.2rem;
+    background: var(--color-accent);
+  }
+
+  /* ---- Gradient hairline (top of page) ---- */
+  .hairline-grad {
+    height: 3px;
+    background: linear-gradient(90deg,
+      var(--color-accent) 0%, var(--color-gold) 22%,
+      var(--color-primary) 55%, var(--color-ink) 100%);
+  }
+
+  /* ---- Ticker (marquee) — slow, subtle, edge-faded ---- */
+  .ticker-wrap {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  }
+  .ticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.2rem;
+    white-space: nowrap;
+    animation: ticker 70s linear infinite;
+    will-change: transform;
+  }
+  .ticker-wrap:hover .ticker { animation-play-state: paused; }
+
+  /* ---- Card image zoom ---- */
+  .zoom-frame { overflow: hidden; }
+  .zoom-frame img { transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+  .group:hover .zoom-frame img,
+  .zoom-frame:hover img { transform: scale(1.05); }
+
+  /* ---- Card hover lift (soft — never crowds neighbours) ---- */
+  .card-hover { transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease; }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px -24px rgba(16, 19, 25, 0.28);
+    border-color: rgba(16, 19, 25, 0.18);
+  }
+
+  /* ---- Numbered rank badge ---- */
+  .rank-badge {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 2.6rem;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.3px var(--color-line);
+    transition: -webkit-text-stroke-color 0.3s;
+  }
+  .group:hover .rank-badge { -webkit-text-stroke-color: var(--color-accent); }
+
+  /* ---- Long-form article typography ---- */
+  .prose-ed {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--color-ink-soft);
+  }
+  .prose-ed > * + * { margin-top: 1.35em; }
+  .prose-ed > h2:first-child { margin-top: 0; }
+
+  /* Editorial drop cap on the opening paragraph */
+  .prose-ed > p:first-of-type::first-letter {
+    float: left;
+    font-family: var(--font-display);
+    font-size: 3.6em;
+    font-weight: 600;
+    line-height: 0.86;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--color-accent);
+  }
+  .prose-ed h2 {
+    font-size: 1.75rem;
+    margin-top: 2.3em;
+    color: var(--color-ink);
+  }
+  .prose-ed h3 {
+    font-size: 1.4rem;
+    margin-top: 1.9em;
+    color: var(--color-ink);
+  }
+  .prose-ed a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+  }
+  .prose-ed a:hover { color: var(--color-accent); }
+  .prose-ed ul { list-style: disc; padding-left: 1.4rem; }
+  .prose-ed ol { list-style: decimal; padding-left: 1.4rem; }
+  .prose-ed li + li { margin-top: 0.5em; }
+  .prose-ed blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding: 0.5em 0 0.5em 1.3em;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.3rem;
+    line-height: 1.5;
+    color: var(--color-ink);
+  }
+  .prose-ed pre {
+    background: var(--color-ink);
+    color: #e8e8e6;
+    padding: 1.25rem 1.4rem;
+    border-radius: 0.6rem;
+    overflow-x: auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .prose-ed code {
+    font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+    font-size: 0.92em;
+  }
+  .prose-ed :not(pre) > code {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+    padding: 0.15em 0.4em;
+    border-radius: 0.3rem;
+  }
+  .prose-ed img { border-radius: 0.6rem; width: 100%; height: auto; }
+  .prose-ed hr { border: 0; border-top: 1px solid var(--color-line); margin: 2.5em 0; }
+
+  /* ---- Responsive data tables (template wraps tables in .table-scroll) ---- */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .prose-ed table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .prose-ed th, .prose-ed td {
+    border: 1px solid var(--color-line);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .prose-ed th { background: var(--color-surface); font-weight: 700; }
+  .prose-ed figcaption {
+    margin-top: 0.6rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+  }
+
+  /* ---- Grain overlay ---- */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---- Reveal on scroll / load — gentle, professional ---- */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0s);
+    will-change: opacity, transform;
+  }
+  [data-reveal].in { opacity: 1; transform: translateY(0); }
+
+  /* staggered load animation (kept for hero) */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: reveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .reveal-1 { animation-delay: 0.05s; }
+  .reveal-2 { animation-delay: 0.15s; }
+  .reveal-3 { animation-delay: 0.25s; }
+  .reveal-4 { animation-delay: 0.35s; }
+
+  /* Respect users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .ticker { animation: none; }
+    [data-reveal], .reveal {
+      opacity: 1;
+      transform: none;
+      animation: none;
+      transition: none;
+    }
+    html { scroll-behavior: auto; }
+  }
+
+  /* Anchor targets clear the sticky header */
+  html { scroll-padding-top: 5.5rem; }
+
+  /* ---- Professional footer ---- */
+  footer {
+    --footer-bg: #0d1117;
+  }
+
+  /* Newsletter input background & border (dark translucent) */
+  footer input[type="email"] {
+    background-color: rgb(247 245 240 / 0.06);
+    border-color: rgb(247 245 240 / 0.13);
+    color: var(--color-paper);
+  }
+  footer input[type="email"]:focus {
+    background-color: rgb(247 245 240 / 0.09);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgb(232 64 42 / 0.18);
+  }
+  footer input[type="email"]::placeholder {
+    color: rgb(247 245 240 / 0.32);
+  }
+
+  /* Footer divider line */
+  footer .footer-divider {
+    height: 1px;
+    background: rgb(247 245 240 / 0.08);
+  }
+
+  /* Footer social icon hover */
+  footer a.social-icon {
+    border-color: rgb(247 245 240 / 0.12);
+    background-color: rgb(247 245 240 / 0.05);
+    color: rgb(247 245 240 / 0.5);
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  }
+  footer a.social-icon:hover {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+  }
+
+  /* Animated underline slide-in on footer nav links */
+  footer .footer-link-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  footer .footer-link-line::before {
+    content: "";
+    display: block;
+    height: 1px;
+    width: 0;
+    background: var(--color-accent);
+    transition: width 0.25s ease;
+    flex-shrink: 0;
+  }
+  footer .footer-link-line:hover::before { width: 1rem; }
+}
+
+@keyframes reveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ---------------------------------------------------------------------
+ *  Editor content (admin WYSIWYG output)
+ * --------------------------------------------------------------------- */
+.editor-content { font-family: var(--font-sans); }
+.editor-content h1, .editor-content h2,
+.editor-content h3, .editor-content h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------
+ *  Admin sidebar brand — the logo can never escape the sidebar, even if
+ *  utility classes get mangled by an external formatter. (Unlayered on
+ *  purpose: beats Tailwind's utility layer.)
+ * --------------------------------------------------------------------- */
+#admin-sidebar { overflow: hidden; }
+#admin-sidebar .brand-box { overflow: hidden; min-width: 0; }
+#admin-sidebar .brand-box img {
+  height: 2.5rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}

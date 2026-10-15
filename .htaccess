@@ -1,0 +1,101 @@
+# =====================================================================
+#  TechScope â€” Apache configuration (cPanel / shared hosting)
+# =====================================================================
+
+Options -Indexes
+DirectoryIndex index.php
+
+# ---------------------------------------------------------------------
+# Pretty URLs
+# ---------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Security: deny sensitive directories FIRST (before the static-file
+  # passthrough below, otherwise real files inside them are served).
+  RewriteRule ^(config|tools|includes)/ - [F,L]
+
+  # Allow real files & directories to pass through
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Clean routes â†’ PHP scripts
+  RewriteRule ^blog/?$            blog.php        [L,QSA]
+  RewriteRule ^categories/?$      categories.php  [L,QSA]
+  RewriteRule ^about/?$           about.php       [L,QSA]
+  RewriteRule ^contact/?$         contact.php     [L,QSA]
+  RewriteRule ^privacy/?$         privacy.php     [L,QSA]
+  RewriteRule ^terms/?$           terms.php       [L,QSA]
+  RewriteRule ^disclaimer/?$      disclaimer.php  [L,QSA]
+  RewriteRule ^sitemap/?$         sitemap.php     [L,QSA]
+  RewriteRule ^sitemap\.xml$      sitemap-xml.php [L]
+  RewriteRule ^robots\.txt$       robots.php      [L]
+  RewriteRule ^search/?$          search.php      [L,QSA]
+  RewriteRule ^post/([^/]+)/?$    post.php?slug=$1    [L,QSA]
+  RewriteRule ^category/([^/]+)/?$ category.php?slug=$1 [L,QSA]
+  RewriteRule ^tag/([^/]+)/?$     tag.php?slug=$1      [L,QSA]
+  RewriteRule ^author/([^/]+)/?$  author.php?slug=$1   [L,QSA]
+
+  # Admin
+  RewriteRule ^admin/?$           admin/index.php  [L,QSA]
+  RewriteRule ^admin/login/?$     admin/login.php  [L,QSA]
+  RewriteRule ^admin/logout/?$    admin/logout.php [L,QSA]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/admin/$1.php -f
+  RewriteRule ^admin/([a-zA-Z0-9_-]+)/?$ admin/$1.php [L,QSA]
+  RewriteRule ^admin/(.+)$        admin/$1         [L,QSA]
+
+  # Everything else â†’ 404 page
+  RewriteRule ^                   404.php          [L]
+</IfModule>
+
+# ---------------------------------------------------------------------
+# Security headers
+# ---------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  # Belt-and-braces: admin must never appear in search results
+  Header set X-Robots-Tag "noindex, nofollow" "expr=%{REQUEST_URI} =~ m#/admin/#"
+</IfModule>
+
+# ---------------------------------------------------------------------
+# Block sensitive files — robots.txt must stay public (search engines
+# must be able to fetch it; everything else .txt stays denied)
+# ---------------------------------------------------------------------
+<FilesMatch "\.(sql|md|log|ini|sh|yml|yaml|lock|txt)$">
+  Require all denied
+</FilesMatch>
+<Files "robots.txt">
+  Require all granted
+</Files>
+
+# ---------------------------------------------------------------------
+# Caching for static assets
+# ---------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css            "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType image/jpeg          "access plus 6 months"
+  ExpiresByType image/png           "access plus 6 months"
+  ExpiresByType image/webp          "access plus 6 months"
+  ExpiresByType image/svg+xml       "access plus 6 months"
+  ExpiresByType font/woff2          "access plus 1 year"
+</IfModule>
+
+# ---------------------------------------------------------------------
+# Compression
+# ---------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# ---------------------------------------------------------------------
+# Default charset
+# ---------------------------------------------------------------------
+AddDefaultCharset UTF-8
+

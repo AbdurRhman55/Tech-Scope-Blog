@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" role="img" aria-label="B+tree index structure diagram">
+  <defs>
+    <marker id="arrowP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f4fd8"/>
+    </marker>
+    <marker id="arrowA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e8402a"/>
+    </marker>
+    <marker id="arrowM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5a6070"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="40" y="42" font-family="Manrope, Arial, sans-serif" font-size="21" font-weight="700" fill="#14161c">A B+tree index: a few page reads, not one per row</text>
+  <text x="40" y="66" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Every level holds many keys, all leaves sit at the same depth, and leaves are linked in key order.</text>
+
+  <!-- root -->
+  <rect x="370" y="86" width="160" height="52" rx="9" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="450" y="117" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Root page</text>
+
+  <!-- internal pages -->
+  <rect x="170" y="186" width="180" height="52" rx="9" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="260" y="217" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Internal page (25–48)</text>
+  <rect x="550" y="186" width="180" height="52" rx="9" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="640" y="217" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Internal page (49–72)</text>
+
+  <path d="M440,138 L275,184" fill="none" stroke="#1f4fd8" stroke-width="2" marker-end="url(#arrowP)"/>
+  <path d="M460,138 L625,184" fill="none" stroke="#1f4fd8" stroke-width="2" marker-end="url(#arrowP)"/>
+
+  <!-- leaf pages -->
+  <rect x="40" y="300" width="170" height="56" rx="9" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="125" y="324" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Leaf: keys 1–24</text>
+  <text x="125" y="345" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">key + primary key</text>
+
+  <rect x="230" y="300" width="170" height="56" rx="9" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="315" y="324" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Leaf: keys 25–48</text>
+  <text x="315" y="345" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">key + primary key</text>
+
+  <rect x="420" y="300" width="170" height="56" rx="9" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="505" y="324" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Leaf: keys 49–72</text>
+  <text x="505" y="345" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">key + primary key</text>
+
+  <rect x="610" y="300" width="170" height="56" rx="9" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="695" y="324" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Leaf: keys 73–96</text>
+  <text x="695" y="345" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">key + primary key</text>
+
+  <path d="M240,238 L135,298" fill="none" stroke="#1f4fd8" stroke-width="2" marker-end="url(#arrowP)"/>
+  <path d="M285,238 L305,298" fill="none" stroke="#1f4fd8" stroke-width="2" marker-end="url(#arrowP)"/>
+  <path d="M615,238 L515,298" fill="none" stroke="#1f4fd8" stroke-width="2" marker-end="url(#arrowP)"/>
+  <path d="M665,238 L685,298" fill="none" stroke="#1f4fd8" stroke-width="2" marker-end="url(#arrowP)"/>
+
+  <!-- leaf chain -->
+  <path d="M212,328 L226,328" fill="none" stroke="#5a6070" stroke-width="2" marker-end="url(#arrowM)"/>
+  <path d="M402,328 L416,328" fill="none" stroke="#5a6070" stroke-width="2" marker-end="url(#arrowM)"/>
+  <path d="M592,328 L606,328" fill="none" stroke="#5a6070" stroke-width="2" marker-end="url(#arrowM)"/>
+  <text x="795" y="333" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">leaves link</text>
+
+  <!-- highlighted lookup path drawn on top -->
+  <path d="M440,138 L275,184" fill="none" stroke="#e8402a" stroke-width="3" marker-end="url(#arrowA)"/>
+  <path d="M240,238 L135,298" fill="none" stroke="#e8402a" stroke-width="3" marker-end="url(#arrowA)"/>
+  <text x="470" y="165" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#e8402a">lookup path (accent)</text>
+
+  <text x="40" y="392" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Range scans start at the matching leaf and walk the linked leaves, so BETWEEN and ORDER BY stay cheap.</text>
+  <text x="40" y="416" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Tree depth grows slowly with table size: a lookup reads a handful of pages instead of scanning every row.</text>
+
+  <rect x="40" y="440" width="820" height="52" rx="10" fill="#ffffff" stroke="#d8d6cf" stroke-width="1.5"/>
+  <text x="60" y="463" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Secondary-index leaf stores (indexed key, primary key) — the final row fetch goes through the</text>
+  <text x="60" y="484" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">clustered index (the table itself), unless every needed column is already in the index (covering).</text>
+</svg>

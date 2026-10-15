@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" font-family="Manrope, Arial, sans-serif" role="img" aria-label="Diagram: one state variable with a status discriminant fans out into loading, success and error variants, each carrying only the fields that belong to it">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f4fd8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="48" y="46" font-size="21" font-weight="bold" fill="#14161c">One variable, three shapes: the discriminated union</text>
+
+  <!-- single state variable -->
+  <rect x="60" y="210" width="230" height="96" rx="16" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="175" y="250" font-size="16" font-weight="bold" fill="#14161c" text-anchor="middle">state: RequestState</text>
+  <text x="175" y="278" font-size="15" fill="#5a6070" text-anchor="middle">status is the discriminant</text>
+
+  <!-- fan-out arrows -->
+  <path d="M290,236 C370,228 404,140 462,132" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M290,258 C360,258 400,258 462,258" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M290,280 C370,288 404,376 462,384" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- loading variant -->
+  <rect x="470" y="92" width="360" height="80" rx="16" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="494" y="126" font-size="16" font-weight="bold" fill="#14161c">{ status: "loading" }</text>
+  <text x="494" y="152" font-size="15" fill="#5a6070">no data field — nothing to render yet</text>
+
+  <!-- success variant -->
+  <rect x="470" y="218" width="360" height="80" rx="16" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="494" y="252" font-size="16" font-weight="bold" fill="#14161c">{ status: "success", posts: Post[] }</text>
+  <text x="494" y="278" font-size="15" fill="#5a6070">posts exists only in this branch</text>
+
+  <!-- error variant -->
+  <rect x="470" y="344" width="360" height="80" rx="16" fill="#ffffff" stroke="#e8402a" stroke-width="2.5"/>
+  <text x="494" y="378" font-size="16" font-weight="bold" fill="#14161c">{ status: "error", message: string }</text>
+  <text x="494" y="404" font-size="15" fill="#5a6070">message exists only in this branch</text>
+
+  <text x="48" y="466" font-size="15" fill="#5a6070">switch (state.status) narrows the union, so each branch sees only its own fields.</text>
+  <text x="48" y="492" font-size="15" fill="#e8402a">Add a fourth status and every exhaustive switch fails to compile until it is handled.</text>
+</svg>

@@ -1,0 +1,183 @@
+<p>Data visualization is not decoration — it is compression. A good chart lets someone see in two seconds what a table hides in twenty minutes. But compression can distort as well as clarify: the same numbers can be drawn to inform or to mislead, often by accident. This guide covers the principles that keep a chart honest and readable — starting with the question your chart must answer, matching the form to the message, choosing color and labels with intent, and checking your output against a short list of failure modes before it reaches a stakeholder.</p>
+
+<h2>The direct answer: what makes a chart work</h2>
+
+<p>A chart works when the reader can extract its message without decoding it. That happens when four things are true: the chart answers one specific question, the form matches the kind of comparison being made, the axes and scales are honest, and everything that does not carry information has been removed. Everything else — palette choices, chart type fashion, tooling — is downstream of those four.</p>
+
+<ul>
+<li><strong>One chart, one question.</strong> If you cannot write the takeaway sentence, you are not ready to draw.</li>
+<li><strong>Right form for the comparison.</strong> Bars compare magnitudes; lines show change; scatter shows relationships; tables show exact values.</li>
+<li><strong>Honest scales.</strong> Axes that start mid-range, cherry-picked windows, and mismatched units exaggerate differences that are not there.</li>
+<li><strong>Minimum ink.</strong> Every gridline, border and label must earn its place by carrying data.</li>
+</ul>
+
+<h2>Start with the question</h2>
+
+<p>Before choosing a chart type, write the single sentence you want the reader to take away. Every element in the final image must serve that sentence; anything that does not is noise. The sentence also decides the audience's needs: an executive who needs one number wants a different picture than an analyst who needs to inspect a distribution.</p>
+
+<ol>
+<li>Write the takeaway: &ldquo;Retention improved after the March onboarding change, except for the mobile cohort.&rdquo;</li>
+<li>Decide what the reader must compare: magnitudes, trends, parts of a whole, distributions, or relationships.</li>
+<li>Pick the simplest form that makes that comparison visible at a glance.</li>
+<li>Choose the slice of data that supports the sentence — and state what you left out if the slice is partial.</li>
+<li>Draft the chart, then delete everything that does not support the sentence.</li>
+</ol>
+
+<p>That ordering matters. Chart chosen first, question second, is how you end up with a decorative 3D pie nobody can read.</p>
+
+<h2>Match the form to the message</h2>
+
+<p>The classic form-to-question mapping is a good default, and it is a default rather than a law: break it deliberately, with a reason, not because the tool offered a novelty.</p>
+
+<table>
+<thead>
+<tr><th>Question you are answering</th><th>Default form</th><th>Why it works</th><th>Watch out for</th></tr>
+</thead>
+<tbody>
+<tr><td>Which category is bigger?</td><td>Horizontal or vertical bars</td><td>Length on a common baseline is read accurately</td><td>Truncated value axis; too many categories</td></tr>
+<tr><td>How does it change over time?</td><td>Line chart</td><td>Continuity and slope are the message</td><td>Too many series; irregular intervals plotted as regular</td></tr>
+<tr><td>Do two variables move together?</td><td>Scatter plot</td><td>Shows the relationship and its exceptions</td><td>Overplotting; implying causation from association</td></tr>
+<tr><td>What is the distribution?</td><td>Histogram or box plot</td><td>Spread, skew and outliers become visible</td><td>Bin width that hides or invents structure</td></tr>
+<tr><td>How do parts sum to a whole?</td><td>Stacked bar; pie only for two to five parts</td><td>Composition is a part-to-total comparison</td><td>Pies with many slices; stacked series that are hard to compare</td></tr>
+<tr><td>What are the exact values?</td><td>Table</td><td>Nothing beats rows and columns for lookup</td><td>Hoping a table reveals a pattern it cannot show</td></tr>
+<tr><td>Where is a value relative to a target?</td><td>Bullet-style bar or gauge-free bar</td><td>Actual against goal on one line</td><td>Dashboards that show fifty gauges and no insight</td></tr>
+</tbody>
+</table>
+
+<p>Note the last row: a table is a legitimate chart choice. When the reader's task is looking up numbers rather than spotting a pattern, a well-formatted table beats a clever graphic.</p>
+
+<h2>The same data, drawn twice</h2>
+
+<p>The most common honest-looking distortion is a truncated value axis. Below is one illustrative dataset — six monthly figures, clearly a sample — drawn two ways. Only the axis changes.</p>
+
+<figure><img src="/assets/img/diagrams/data-visualization-principles-chart-comparison.svg" alt="Two line charts of the same six illustrative monthly values: the left chart's value axis begins at 400 and makes a modest rise look dramatic, while the right chart uses a zero baseline and shows the same rise honestly"><figcaption>Same six values, two axes. The left panel exaggerates a modest rise; the right panel is honest.</figcaption></figure>
+
+<table>
+<thead>
+<tr><th>Aspect</th><th>Misleading version</th><th>Honest version</th></tr>
+</thead>
+<tbody>
+<tr><td>Value axis</td><td>Begins at 400, near the data minimum, making a small rise look steep</td><td>Begins at 0 for bars; for lines, a non-zero start is labeled and visually marked</td></tr>
+<tr><td>Time window</td><td>Starts at the low point, hides the earlier decline</td><td>Shows the full period, or states clearly that the window is partial</td></tr>
+<tr><td>Series selection</td><td>Only the flattering series is plotted</td><td>All relevant series, with the focal one emphasized</td></tr>
+<tr><td>Color</td><td>Rainbow palette, one hue per category</td><td>One accent color for the subject, muted gray for context</td></tr>
+<tr><td>Units and labels</td><td>Axis units omitted or changed mid-chart</td><td>Units stated once, consistently, near the axis</td></tr>
+<tr><td>Annotations</td><td>A spike appears with no explanation</td><td>Known events (a launch, an outage, a promotion) annotated on the date</td></tr>
+<tr><td>Headline</td><td>&ldquo;Signups soar!&rdquo;</td><td>&ldquo;Signups up about 11% across the six sample months&rdquo; (arithmetic on the sample figures in the worked example below)</td></tr>
+</tbody>
+</table>
+
+<p>The rules are simple to state and easy to skip under deadline: bars always start at zero, line charts either start at zero or carry a visible break marker, time windows include context, and the headline describes what the chart actually shows rather than what you hoped it showed.</p>
+
+<h2>Principles checklist</h2>
+
+<p>Run this list over every chart before it ships. It takes a minute and catches most failures.</p>
+
+<ul>
+<li><strong>Write the takeaway first</strong> — then make it the title, not a caption nobody reads.</li>
+<li><strong>Use the shortest honest title.</strong> A descriptive title beats a clever one.</li>
+<li><strong>Label directly where possible.</strong> Direct labels on lines and bars remove the legend ping-pong.</li>
+<li><strong>Sort deliberately.</strong> Order categories by value, time, or a meaningful sequence — never by tool default.</li>
+<li><strong>Color with intent.</strong> Highlight the one series that matters; gray the rest. Reserve your accent color for emphasis, not decoration.</li>
+<li><strong>Be colorblind-safe.</strong> Never encode meaning by hue alone — pair color with position, shape, pattern, or a direct label.</li>
+<li><strong>Keep scales consistent</strong> when panels are compared side by side; identical data deserves identical axes.</li>
+<li><strong>Show the denominator.</strong> Percentages without sample sizes invite overconfidence.</li>
+<li><strong>Respect the baseline.</strong> Bars from zero; lines with an honest or explicitly marked axis break.</li>
+<li><strong>Annotate anomalies.</strong> If a point is unusual, say why — or say that the reason is unknown.</li>
+<li><strong>Do not imply causation</strong> from a chart that only shows association. The title should say &ldquo;correlates with,&rdquo; not &ldquo;causes.&rdquo;</li>
+<li><strong>One message per chart.</strong> A chart carrying three messages carries none.</li>
+<li><strong>Test legibility.</strong> Shrink the image to thumbnail size: if the message disappears, the encoding is too subtle.</li>
+</ul>
+
+<h2>Label, color, and annotation</h2>
+
+<p>These three carry most of the reading load, and all three are usually over-applied by default and under-applied where it counts.</p>
+
+<h3>Labels</h3>
+
+<ul>
+<li>Name the axes with the measure and its unit: &ldquo;Active users (thousands),&rdquo; not &ldquo;Value.&rdquo;</li>
+<li>Label the unit once and keep it for the whole chart; do not switch between absolute and percentage without saying so.</li>
+<li>Put numbers on the data when there are few points and exact values matter; remove them when there are many and the shape matters.</li>
+<li>Remove chart borders and tick clutter that do not help alignment.</li>
+</ul>
+
+<h3>Color</h3>
+
+<ul>
+<li>Encode categories with a limited palette — three or four hues are usually enough for a readable chart.</li>
+<li>Use sequential single-hue ramps for ordered quantities (low to high) and reserve diverging ramps for values with a meaningful midpoint.</li>
+<li>Check contrast for text and for labels placed on colored fills; accessibility guidance such as WCAG's contrast ratios is a useful floor, not a target.</li>
+<li>Avoid the default categorical rainbow: it implies ordering that does not exist and eats contrast.</li>
+</ul>
+
+<h3>Annotation</h3>
+
+<ul>
+<li>A single well-placed note can replace a paragraph of commentary.</li>
+<li>Mark external events at their date — releases, campaigns, outages — so readers do not invent their own explanations.</li>
+<li>If a value is estimated, partial, or projected, mark it visually (dashed, lighter, hatched) and say so in the caption.</li>
+</ul>
+
+<h2>Remove everything else</h2>
+
+<p>Gridlines, borders, redundant labels, drop shadows and 3D effects add ink without adding information. Chartjunk is real: it competes with the data for attention and makes the honest elements harder to see. The removal pass is not cosmetic — it is the step that turns a chart from a picture of a spreadsheet into an argument.</p>
+
+<ul>
+<li>Delete 3D effects, bevels, gradients and shadows; depth distorts perceived area and length.</li>
+<li>Delete heavy gridlines; light horizontal guides are usually enough for a line chart, none for a simple bar chart with direct labels.</li>
+<li>Delete the frame around the plot area unless it carries a reference value.</li>
+<li>Delete legends you can replace with direct labels.</li>
+<li>Delete data labels that repeat what an axis already tells the reader.</li>
+<li>Delete decorative images, mascots and background textures entirely.</li>
+</ul>
+
+<blockquote>If you have to explain the chart for a minute, the chart has failed.</blockquote>
+
+<h2>A practical example: one chart, three passes</h2>
+
+<p>Take an illustrative monthly signups report — sample figures, invented for this example, not real measurements:</p>
+
+<table>
+<thead>
+<tr><th>Month</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th></tr>
+</thead>
+<tbody>
+<tr><td>Signups</td><td>412</td><td>430</td><td>425</td><td>447</td><td>441</td><td>458</td></tr>
+</tbody>
+</table>
+
+<p><strong>Pass 1 — the default export.</strong> The tool's standard line chart includes a full grid, a legend that repeats &ldquo;Signups,&rdquo; a border, markers on every point, and an axis auto-scaled from 400 to 460. The message survives, but the slope looks like a breakout quarter, and the dip in March disappears into the noise. This is the version that gets screenshotted into a deck and believed.</p>
+
+<p><strong>Pass 2 — honest scales and context.</strong> Start the value axis at zero (or keep the zoomed axis and label it clearly as a zoom), drop the border, keep two faint horizontal guides, remove the legend, and title the chart with the takeaway: &ldquo;Signups rose modestly across the six sample months, with a dip in March.&rdquo; The rise from 412 to 458 is roughly 11% — arithmetic on the sample — and the chart now shows roughly that.</p>
+
+<p><strong>Pass 3 — add the reason.</strong> If March's dip lines up with a known event, annotate it on the date. If it does not, say nothing rather than inventing a narrative. A chart that admits &ldquo;we do not know yet&rdquo; earns more trust than one that quietly implies a trend change.</p>
+
+<p>The whole exercise takes minutes, and the difference between pass 1 and pass 3 is the difference between a picture and a claim you can defend in a meeting.</p>
+
+<h2>Common mistakes and when not to visualize</h2>
+
+<ul>
+<li><strong>Charting for decoration.</strong> If the graphic adds no pattern the table lacks and no time the reader saves, use a table or a sentence.</li>
+<li><strong>Dual axes.</strong> Two scales on one chart let you make any two series appear to move together; if you must use them, label both axes clearly and state the relationship cautiously.</li>
+<li><strong>Pie overload.</strong> Beyond a handful of slices, angles are harder to compare than lengths — switch to bars.</li>
+<li><strong>Smoothing that lies.</strong> Trend lines can hide turning points; show the raw series alongside any smoothed one.</li>
+<li><strong>Percentages without denominators.</strong> A 50% jump from 2 to 4 users is not a success story.</li>
+<li><strong>Too many series.</strong> Eight overlapping lines are a hairball; small multiples or a highlight-plus-gray approach restores readability.</li>
+<li><strong>Misleading aggregation.</strong> Blended totals can rise while every subgroup falls — check the segments before celebrating a total, which is exactly the failure mode our <a href="/post/cohort-analysis-retention-guide">cohort retention walkthrough</a> is designed to catch.</li>
+<li><strong>Chart type as afterthought.</strong> If the question is &ldquo;how many?&rdquo; and you answered with a doughnut, redo it.</li>
+</ul>
+
+<h2>Key takeaways</h2>
+
+<ul>
+<li>Write the takeaway sentence first; build the chart to prove that one sentence.</li>
+<li>Match form to question: bars for comparison, lines for time, scatter for relationships, tables for exact values.</li>
+<li>Scale honesty is non-negotiable: zero baselines for bars, context in the time window, consistent units.</li>
+<li>Color and labels should direct attention, not fill space — one accent, gray context, direct labels.</li>
+<li>Remove every element that does not carry information; chartjunk competes with your data.</li>
+<li>Sort, annotate and caption deliberately; state sample sizes and mark estimates.</li>
+<li>A chart that needs a minute of explanation has failed — simplify the encoding instead.</li>
+</ul>
+
+<p>Your next step is concrete: open your most recent report chart and run it through the checklist above — takeaway, form, scale, ink — then redraw it once with the fixes applied. The second version is usually both smaller and more persuasive. When the charts move from spreadsheets into a pipeline, remember that the queries feeding them are a performance problem of their own — see <a href="/post/sql-indexing-practical-guide">reading a query plan before blaming the chart</a> — and when your visuals need to support a modelling story, our <a href="/post/feature-engineering-tabular-data">feature engineering walkthrough</a> shows what honest exploratory charts tend to reveal about tabular data.</p>

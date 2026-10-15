@@ -1,0 +1,175 @@
+<p>Irreproducible results are the quiet scandal of computational research. The fix is unglamorous plumbing: pin what your code runs on, version the data it reads, record what produced each output, and make rerunning the whole thing a single command. None of it is clever, and all of it is the difference between an analysis your team can defend six months later and one nobody can rerun — including you.</p>
+
+<p><strong>The direct answer: reproducibility comes from four layers working together — a pinned environment (dependency lockfile plus interpreter version), versioned data (immutable raw inputs with recorded hashes), deterministic runs (seeds and a recorded provenance trail), and one command that goes from raw data to final figures.</strong> Miss any one layer and the other three eventually fail too. The rest of this article shows how to build each one, with illustrative command examples and the failure modes they prevent.</p>
+
+<h2>What "reproducible" means here</h2>
+
+<p>The working definition for this article is narrow and practical: <strong>a colleague who clones your repository, with only the instructions inside it, can regenerate your key outputs and get the same results — within whatever tolerance you have stated.</strong> That is computational reproducibility; it is a property of an artefact, not of a person's memory.</p>
+
+<p>It helps to be explicit about what is <em>not</em> guaranteed, because the word is used loosely:</p>
+
+<ul>
+<li><strong>Not bitwise identity by default.</strong> Floating point, threading and hardware differences can nudge last digits. State a tolerance — "identical to 4 decimal places" or "within run-to-run variance" — rather than pretending outputs will be byte-identical.</li>
+<li><strong>Not the same as replicability.</strong> Replicability usually means a different team collecting new data reaches the same conclusion. Reproducibility means re-running the same data and code. You are building for the second one.</li>
+<li><strong>Not a one-off act.</strong> It is a habit: the environment, data and provenance are updated at the same time as the analysis itself, not reconstructed afterwards from memory.</li>
+<li><strong>Not optional because the work is "just an internal analysis".</strong> Internal work gets audited too — by the colleague who inherits it, or by you, after a holiday and a hard deadline.</li>
+</ul>
+
+<h2>Layer 1 — pin the environment</h2>
+
+<p>Your laptop is not an environment specification. The two things that drift are dependencies and the interpreter, so pin both:</p>
+
+<ul>
+<li><strong>Create a virtual environment per project.</strong> Never install analysis dependencies into the system interpreter; a project without its own environment is a project that will fight your next one.</li>
+<li><strong>Record a lockfile, not just a wish list.</strong> A requirements list of top-level packages is intent; a fully resolved lockfile with exact versions is a specification. Dedicated lock tools exist for Python and other ecosystems — pick one and commit its output.</li>
+<li><strong>Record the interpreter version</strong> — including the minor version, and for compiled packages, the platform you built on.</li>
+<li><strong>Prefer conda-style environment files</strong> when non-Python dependencies (compilers, system libraries, geospatial stacks) are involved; they capture what pip cannot.</li>
+<li><strong>For strongest guarantees, containerise.</strong> A container image pins OS, system libraries and runtime together with your dependencies. It is heavier, and it is the closest thing to a hermetic answer.</li>
+<li><strong>Record installation instructions that a stranger can follow,</strong> in order, in a README that lives beside the lockfile — not in a chat message from last spring.</li>
+</ul>
+
+<p>Illustrative sequence — commands like these are stable across current Python tooling, but check current documentation before relying on flags, since tooling in this space moves quickly:</p>
+
+<pre><code># one-time setup, recorded in the repository README
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.in     # your top-level dependencies
+pip freeze &gt; requirements.txt      # exact resolved versions → commit this
+
+# teammate's machine (or your own, six months later)
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt    # exact same versions</code></pre>
+
+<p>Conda users get the same idea through an exported file: <code>conda env export -f environment.yml</code>, committed to the repository, which captures both Python packages and the non-Python libraries they link against. (The illustrative commands here intentionally avoid exotic flags; if your workflow depends on one, pin that behaviour in your project docs too.)</p>
+
+<h2>Layer 2 — notebooks: useful, and honest about their state</h2>
+
+<p>Notebooks are the default medium for exploratory analysis, and they are also the most common source of "it worked when I ran it". The reason is state: a notebook remembers every cell you ever executed, in whatever order you executed them.</p>
+
+<ul>
+<li><strong>Out-of-order execution.</strong> A notebook that runs top-to-bottom is a different program from one where cell 14 defined a variable that cell 3 depends on. Committing the "ran cleanly" version and the "explored" version as the same file hides the difference.</li>
+<li><strong>Hidden state and stale outputs.</strong> Outputs rendered from a variable that no longer exists — or from data that has since changed — are quietly wrong in the most convincing way possible.</li>
+<li><strong>Environment leakage.</strong> A notebook that imports a package you installed globally last week does not test your lockfile at all.</li>
+<li><strong>The discipline that fixes most of it:</strong> before committing, restart the kernel and run all cells in order; if it fails, the notebook is not reproducible yet.</li>
+<li><strong>Keep heavy logic out of cells.</strong> Put reusable functions in modules your notebook imports. Short, ordered notebooks that call tested code are far easier to rerun than 400-line epics.</li>
+<li><strong>Automate execution where it matters.</strong> Running notebooks headlessly as part of your one-command pipeline (tools like <code>nbconvert --execute</code> in Jupyter do exactly this) turns "trust me, it runs" into something CI can check.</li>
+</ul>
+
+<p>The honest framing: a notebook is a <em>view</em> onto an analysis, not the analysis itself. The analysis is the code, the data and the environment.</p>
+
+<h2>Layer 3 — version the data</h2>
+
+<p>Code versioning without data versioning reproduces nothing. The rules are simple to state and easy to violate under deadline pressure:</p>
+
+<ul>
+<li><strong>Raw data is immutable.</strong> Land it once, never edit it in place, and treat any modification as an error to be corrected by re-ingesting — not by patching the file.</li>
+<li><strong>Hash every raw input and record the hashes.</strong> A checksum next to each file in a manifest turns "is this the same data?" from a debate into one command.</li>
+<li><strong>Small data can live in Git;</strong> large data belongs in object storage with versioning enabled, or a data-versioning tool (DVC and similar) that stores pointers and hashes in Git while the blobs live elsewhere.</li>
+<li><strong>Version the schema too.</strong> Record column names, types and row counts at the moment of analysis; a dataset that silently gained a column will produce different "same" results.</li>
+<li><strong>Snapshot derived data with provenance.</strong> Every processed table should be traceable to a raw input hash plus the code revision that transformed it.</li>
+<li><strong>Never rely on a local path.</strong> <code>C:\Users\you\Desktop\final_final.csv</code> is not a data location; a documented fetch step is.</li>
+</ul>
+
+<p>Illustrative manifest discipline:</p>
+
+<pre><code># Linux/macOS — generate a checksum for each raw input
+sha256sum data/raw/*.csv &gt; data/raw/CHECKSUMS.sha256
+
+# Windows PowerShell — same idea, different tool
+Get-FileHash data\raw\sales.csv -Algorithm SHA256
+
+# verify later: if a hash no longer matches, the input changed silently
+sha256sum -c data/raw/CHECKSUMS.sha256</code></pre>
+
+<p>Compare hashes against the manifest whenever you rerun. A mismatch is not a nuisance — it is the system correctly telling you that your "same" analysis would have been computed from different inputs.</p>
+
+<h2>Layer 4 — one command runs it all</h2>
+
+<p>If rerunning the analysis takes more than about three commands and a memory of the sequence, nobody will do it — including future you. The target is a single entry point that goes from raw data to final figures.</p>
+
+<pre><code># Makefile — illustrative: each target states its inputs so
+# make can tell what is out of date
+.PHONY: reproduce figures
+
+reproduce: figures
+
+figures: results/processed.csv src/plot.py
+	python src/plot.py --input results/processed.csv --out figures/
+
+results/processed.csv: data/raw/sales.csv src/transform.py
+	python src/transform.py --input data/raw/sales.csv --output results/processed.csv</code></pre>
+
+<ul>
+<li><strong>Declare inputs and outputs</strong> so the pipeline can skip work that is already current and rebuild work that is not.</li>
+<li><strong>Fail loudly.</strong> A missing dependency or an unreadable input should stop the run with a clear message, not produce a half-finished figure.</li>
+<li><strong>Seed everything.</strong> Set random seeds explicitly at the top of any script that samples, shuffles or initialises stochastically — unseeded randomness is the classic cause of "almost the same, but different" results.</li>
+<li><strong>Record provenance with the output.</strong> Each run should be able to answer: which commit, which lockfile, which data hashes, when, by what command. <code>git rev-parse HEAD</code> captured into a results file is often enough.</li>
+<li><strong>Make it work on a clean machine.</strong> The real test is a fresh clone in a fresh directory — if your pipeline only works with leftovers from a previous run, it is not a pipeline.</li>
+</ul>
+
+<h2>Failure modes, and what each one looks like</h2>
+
+<table>
+<thead>
+<tr><th>Failure mode</th><th>Symptom six months later</th><th>Fix</th></tr>
+</thead>
+<tbody>
+<tr><td>Dependencies unpinned</td><td>Analysis fails or silently changes behaviour after a library upgrade</td><td>Commit a lockfile; upgrade deliberately, never by reinstall</td></tr>
+<tr><td>Interpreter version forgotten</td><td>Code that used a newer syntax feature won't run on the installed runtime</td><td>Record exact Python (or R, etc.) version in the repo</td></tr>
+<tr><td>Notebook run out of order</td><td>Results don't reproduce when cells are executed top-to-bottom</td><td>Restart-and-run-all before every commit; keep logic in modules</td></tr>
+<tr><td>Raw data mutated in place</td><td>Hash check fails, or worse, passes because it was never checked</td><td>Immutable raw zone plus committed checksum manifest</td></tr>
+<tr><td>Unseeded randomness</td><td>Numbers differ slightly every rerun; nobody knows which run was "the" run</td><td>Set and record seeds; state tolerances for nondeterminism</td></tr>
+<tr><td>Hidden manual step</td><td>"Oh, you also have to rename the file first" — known only to one person</td><td>Every step lives in the pipeline or in the README, never in memory</td></tr>
+<tr><td>Absolute local paths</td><td>The script runs only on the machine that created it</td><td>Relative paths and a documented data-fetch step</td></tr>
+<tr><td>No provenance record</td><td>You can't say which code and data produced this chart</td><td>Stamp outputs with commit, lockfile hash and data hashes</td></tr>
+<tr><td>Environment works "on my machine"</td><td>A teammate gets import errors within minutes</td><td>Clean-clone test; containerise if divergence persists</td></tr>
+</tbody>
+</table>
+
+<h2>The reproducibility checklist</h2>
+
+<ol>
+<li>Repository created, with a README that explains what the project does and how to run it.</li>
+<li>Virtual environment per project; no analysis dependencies in the system interpreter.</li>
+<li>Lockfile committed with exact resolved versions, plus the interpreter version recorded.</li>
+<li>Raw data immutable, stored outside the working tree or in a clearly marked raw zone.</li>
+<li>Checksum manifest committed and verified on every rerun.</li>
+<li>Processed data traceable to a raw hash plus a code revision.</li>
+<li>Random seeds set explicitly; nondeterministic steps documented with tolerances.</li>
+<li>Notebooks restart-and-run-all clean before every commit; heavy logic lives in modules.</li>
+<li>One command rebuilds key outputs from raw data on a clean machine.</li>
+<li>Outputs stamped with commit, environment and data fingerprints.</li>
+<li>External data fetch step documented with its source and access requirements.</li>
+<li>A second person (or a fresh clone on a fresh machine) has successfully rerun the pipeline.</li>
+</ol>
+
+<p>Items 1–7 prevent the common failures; items 8–12 are the verification that they actually worked. The last item is the only one that truly counts — everything before it is preparation for that moment.</p>
+
+<h2>When full reproducibility is not worth it</h2>
+
+<p>Honesty about limits belongs here, because chasing perfect reproducibility can consume more time than the analysis deserves:</p>
+
+<ul>
+<li><strong>Tier the effort to the stakes.</strong> A throwaway exploratory slice needs a working script; a figure headed into a published result or a boardroom needs the full checklist.</li>
+<li><strong>Proprietary or personal data may be unshareable.</strong> Ship everything else — code, environment, hashes, schema — plus a synthetic or sample dataset that exercises the same pipeline, and say plainly what could not be shared.</li>
+<li><strong>Some computation is genuinely expensive.</strong> If a full rerun takes hours of scarce hardware, publish the pipeline and record enough provenance to verify outputs without forcing everyone to pay that cost each time.</li>
+<li><strong>Hardware-specific results won't transfer exactly.</strong> Different accelerators and library builds can change floating-point results at the margins; state the platform and the tolerance rather than hiding the difference.</li>
+<li><strong>Tooling churns.</strong> Pinning is a snapshot, not an embalm — plan to revisit lockfiles periodically instead of assuming a five-year-old environment will still resolve.</li>
+</ul>
+
+<p>A useful rule of thumb: reproducibility is insurance, and like insurance you buy the amount that matches what you would lose. What you cannot do is buy nothing and still claim the analysis stands on its own.</p>
+
+<h2>Key takeaways</h2>
+
+<ul>
+<li>Reproducibility is four layers: pinned environment, versioned data, deterministic runs, one-command execution — all four, not whichever is easiest.</li>
+<li>A lockfile plus a recorded interpreter version beats a list of "packages we think we used".</li>
+<li>Raw data is write-once; hashes turn silent data drift into a detectable error.</li>
+<li>Notebooks are views onto analyses; restart-and-run-all is the minimum hygiene before anything is committed.</li>
+<li>Every output should be able to name the commit, environment and data that produced it.</li>
+<li>The only real test is a clean machine running one command — if that fails, nothing else you did counts.</li>
+<li>Match the effort to the stakes, and be explicit about what could not be shared or reproduced exactly.</li>
+</ul>
+
+<p>Your next step: pick your most important current analysis and try the clean-clone test today. Clone it into an empty directory, follow your own README literally, and note every place you have to consult memory. That list is your backlog — work it top-down (environment, then data, then the one-command pipeline), and rerun the test after each layer lands. Within a few iterations, "nobody can rerun my analysis six months later" stops being a risk and becomes someone else's five-minute check — a habit that pairs well with the reading discipline in <a href="/post/how-to-read-research-paper">how to read a research paper</a>, where pass 3 asks you to reproduce someone else's result. Good version-control hygiene is the substrate for all of this; if your team's commit discipline needs work, start with <a href="/post/git-workflows-team-scale">git workflows that scale past five developers</a>.</p>

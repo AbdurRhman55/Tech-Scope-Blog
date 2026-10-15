@@ -1,0 +1,148 @@
+I want you to build a complete, production-ready, professional blogging website from scratch.
+
+The website must be fully functional from both the FRONTEND and BACKEND/ADMIN PANEL. Do not
+create a static demo or UI-only template. Every important feature must actually work with PHP and
+MySQL.
+
+1. PROJECT GOAL
+
+Build a modern, professional, clean, fast, responsive and SEO-friendly blog platform targeting a GLOBAL
+English-speaking audience.
+
+The website should initially focus on:
+
+        · Artificial Intelligence
+        · Technology
+        · Data Science
+        · Programming
+        · Research
+        · Student/Career Guidance
+        · Productivity
+        · Freelancing and Digital Skills
+The architecture must be flexible so that more categories can be added later.
+
+The website should look like a real professional technology/media publication, not like a basic student
+project.
+
+The design should be clean, premium, modern, trustworthy and attractive while remaining easy to use.
+
+2. TECHNOLOGY STACK
+
+Use:
+
+        · PHP 8+
+        · MySQL
+        · HTML5
+        · CSS3
+        · JavaScript
+        · Bootstrap 5 OR Tailwind CSS
+        · Font Awesome or another lightweight icon library
+        · AJAX where useful
+        · PDO with prepared statements
+        · Modular/reusable PHP components
+Do NOT use unnecessary frameworks or dependencies.
+
+The website must work properly on a standard PHP + MySQL hosting environment such as cPanel.
+
+                                                                         1
+Keep the code organized, readable, maintainable and production-ready.
+
+3. WEBSITE STRUCTURE
+
+Create the following frontend pages:
+
+      1. Home
+      2. Blog
+      3. Single Blog Post
+      4. Categories
+      5. Category Detail
+      6. Search Results
+      7. About Us
+      8. Contact Us
+      9. Privacy Policy
+     10. Terms & Conditions
+     11. Disclaimer
+     12. Author Profile
+     13. 404 Page
+     14. Sitemap page if useful
+
+Create an admin panel with:
+
+      1. Admin Login
+      2. Dashboard
+      3. Posts
+      4. Add Post
+      5. Edit Post
+      6. Categories
+      7. Tags
+      8. Authors/Users
+      9. Comments
+     10. Media Library
+     11. Contact Messages
+     12. SEO Settings
+     13. Website Settings
+     14. Profile
+     15. Logout
+
+4. FRONTEND DESIGN
+
+Create a premium modern blog design.
+
+Design requirements:
+
+        · Clean
+        · Minimal
+
+                                                                         2
+        · Professional
+        · Attractive
+        · User-friendly
+        · Fast loading
+        · Mobile-first
+        · Fully responsive
+        · Good whitespace
+        · Excellent typography
+        · Clear visual hierarchy
+        · Professional cards
+        · Beautiful article pages
+        · Smooth hover effects
+        · Subtle animations
+        · No excessive animations
+        · No clutter
+        · No unnecessary gradients
+        · No outdated UI
+
+Use a professional font combination.
+
+Prefer a modern highly readable font such as:
+
+        · Inter
+        · Manrope
+        · Plus Jakarta Sans
+
+For article content, use a highly readable typography system.
+
+Make sure font sizes, line heights and spacing are comfortable for long-form reading.
+
+5. COLOR THEME
+
+Create a professional technology/editorial theme.
+
+Use a clean primary color with neutral backgrounds.
+
+The color palette must have:
+
+        · Primary color
+        · Secondary/accent color
+        · Background
+        · Surface/card color
+        · Text
+        · Muted text
+        · Border
+
+Maintain good contrast and accessibility.
+
+Do not
+
+                                                                         3
+

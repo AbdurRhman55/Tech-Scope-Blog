@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" font-family="Manrope, Arial, sans-serif" role="img" aria-label="Comparison of branch lifetime: in trunk-based development short feature branches merge back into main within hours, while in git-flow feature branches span days to weeks alongside release and hotfix branches">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f4fd8"/>
+    </marker>
+    <marker id="arrowInk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#14161c"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="48" y="46" font-size="21" font-weight="bold" fill="#14161c">Branch lifetime decides merge pain</text>
+
+  <!-- ===== Trunk-based panel ===== -->
+  <text x="48" y="92" font-size="17" font-weight="bold" fill="#1f4fd8">Trunk-based: branches live hours</text>
+
+  <line x1="70" y1="200" x2="845" y2="200" stroke="#14161c" stroke-width="3" marker-end="url(#arrowInk)"/>
+  <text x="132" y="226" font-size="15" fill="#5a6070">main</text>
+
+  <circle cx="110" cy="200" r="5" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <circle cx="265" cy="200" r="5" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <circle cx="445" cy="200" r="5" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <circle cx="625" cy="200" r="5" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <circle cx="800" cy="200" r="5" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+
+  <path d="M150,200 C168,148 232,148 250,200" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="200" y="138" font-size="15" fill="#14161c" text-anchor="middle">feat A · hours</text>
+
+  <path d="M330,200 C348,148 412,148 430,200" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="380" y="138" font-size="15" fill="#14161c" text-anchor="middle">feat B · hours</text>
+
+  <path d="M510,200 C528,148 592,148 610,200" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="560" y="138" font-size="15" fill="#14161c" text-anchor="middle">feat C · about a day</text>
+
+  <path d="M740,184 L770,158 L800,184 Z" fill="#e8402a"/>
+  <text x="770" y="146" font-size="15" fill="#e8402a" text-anchor="middle">release tagged by CI</text>
+
+  <text x="70" y="250" font-size="15" fill="#5a6070">Every merge keeps main releasable; unfinished work hides behind a feature flag.</text>
+
+  <!-- ===== Git-flow panel ===== -->
+  <text x="48" y="292" font-size="17" font-weight="bold" fill="#1f4fd8">Git-flow: branches live days to weeks</text>
+
+  <line x1="140" y1="340" x2="845" y2="340" stroke="#14161c" stroke-width="3" marker-end="url(#arrowInk)"/>
+  <text x="126" y="346" font-size="15" fill="#14161c" text-anchor="end">main</text>
+
+  <line x1="140" y1="412" x2="845" y2="412" stroke="#14161c" stroke-width="3" stroke-dasharray="9 6" marker-end="url(#arrowInk)"/>
+  <text x="126" y="418" font-size="15" fill="#14161c" text-anchor="end">develop</text>
+
+  <!-- hotfix branch off main -->
+  <path d="M640,340 C656,304 704,304 720,340" fill="none" stroke="#e8402a" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="680" y="294" font-size="15" fill="#e8402a" text-anchor="middle">hotfix/* · hours</text>
+
+  <!-- long feature branch off develop -->
+  <path d="M200,412 C215,470 405,470 420,412" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="310" y="494" font-size="15" fill="#14161c" text-anchor="middle">feature/* · days to weeks</text>
+
+  <!-- release branch between develop and main -->
+  <path d="M540,412 C552,376 570,370 590,370 L716,370" fill="none" stroke="#1f4fd8" stroke-width="2.5"/>
+  <path d="M716,370 L746,346" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M716,370 C738,370 752,388 760,410" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="652" y="362" font-size="15" fill="#14161c" text-anchor="middle">release/* held until ship date</text>
+
+  <text x="470" y="466" font-size="15" fill="#5a6070">Release and hotfix fixes must merge</text>
+  <text x="470" y="488" font-size="15" fill="#5a6070">back to both lines, or the next</text>
+  <text x="470" y="510" font-size="15" fill="#5a6070">release ships without them.</text>
+</svg>

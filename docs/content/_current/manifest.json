@@ -1,0 +1,170 @@
+[
+    {
+        "id": 1,
+        "slug": "how-large-language-models-actually-work",
+        "title": "How Large Language Models Actually Work",
+        "category": "Artificial Intelligence",
+        "words": 209
+    },
+    {
+        "id": 2,
+        "slug": "sql-indexing-practical-guide",
+        "title": "SQL Indexing: A Practical Guide to 100x Faster Queries",
+        "category": "Data Science",
+        "words": 154
+    },
+    {
+        "id": 3,
+        "slug": "freelance-career-pricing-clients-burnout",
+        "title": "Building a Freelance Career That Lasts: Pricing, Clients and Burnout",
+        "category": "Freelancing",
+        "words": 149
+    },
+    {
+        "id": 4,
+        "slug": "evidence-based-learning-techniques",
+        "title": "Study Smarter: Evidence-Based Learning Techniques for Students",
+        "category": "Student & Career",
+        "words": 143
+    },
+    {
+        "id": 5,
+        "slug": "data-visualization-principles",
+        "title": "From Spreadsheets to Storytelling: Data Visualization Principles",
+        "category": "Data Science",
+        "words": 134
+    },
+    {
+        "id": 6,
+        "slug": "clean-code-php-patterns",
+        "title": "Clean Code in PHP: Patterns Every Developer Should Know",
+        "category": "Programming",
+        "words": 167
+    },
+    {
+        "id": 7,
+        "slug": "serverless-architecture-when-it-shines-and-when-it-fails",
+        "title": "Serverless Architecture: When It Shines and When It Fails",
+        "category": "Cloud Computing",
+        "words": 31
+    },
+    {
+        "id": 8,
+        "slug": "rag-vs-fine-tuning-llm",
+        "title": "RAG vs Fine-Tuning: Choosing the Right Way to Specialise an LLM",
+        "category": "Artificial Intelligence",
+        "words": 141
+    },
+    {
+        "id": 9,
+        "slug": "context-engineering-over-prompt-engineering",
+        "title": "Prompt Engineering Is Dead. Long Live Context Engineering.",
+        "category": "Artificial Intelligence",
+        "words": 109
+    },
+    {
+        "id": 10,
+        "slug": "developer-hardware-guide-2026",
+        "title": "The 2026 Developer Hardware Guide: What Actually Matters",
+        "category": "Technology",
+        "words": 108
+    },
+    {
+        "id": 11,
+        "slug": "passkeys-passwordless-web",
+        "title": "Passkeys, End-to-End Encryption and the Passwordless Web",
+        "category": "Technology",
+        "words": 106
+    },
+    {
+        "id": 12,
+        "slug": "cohort-analysis-retention-guide",
+        "title": "Cohort Analysis for Beginners: Reading Retention Like a Pro",
+        "category": "Data Science",
+        "words": 112
+    },
+    {
+        "id": 13,
+        "slug": "feature-engineering-tabular-data",
+        "title": "Feature Engineering Still Beats Bigger Models on Tabular Data",
+        "category": "Data Science",
+        "words": 102
+    },
+    {
+        "id": 14,
+        "slug": "git-workflows-team-scale",
+        "title": "Git Workflows That Scale Past Five Developers",
+        "category": "Programming",
+        "words": 108
+    },
+    {
+        "id": 15,
+        "slug": "typescript-tips-hard-way",
+        "title": "TypeScript Tips You Learn the Hard Way",
+        "category": "Programming",
+        "words": 114
+    },
+    {
+        "id": 16,
+        "slug": "how-to-read-research-paper",
+        "title": "How to Read a Research Paper Without Falling Asleep",
+        "category": "Research",
+        "words": 102
+    },
+    {
+        "id": 17,
+        "slug": "reproducible-research-environment",
+        "title": "Reproducible Research: Notebooks, Environment Pins and Data Versioning",
+        "category": "Research",
+        "words": 105
+    },
+    {
+        "id": 18,
+        "slug": "student-portfolio-gets-interviews",
+        "title": "From Campus to Career: Building a Portfolio That Gets Interviews",
+        "category": "Student & Career",
+        "words": 98
+    },
+    {
+        "id": 19,
+        "slug": "interview-prep-star-method",
+        "title": "Interview Prep That Works: The STAR Method and Beyond",
+        "category": "Student & Career",
+        "words": 107
+    },
+    {
+        "id": 20,
+        "slug": "deep-work-realistic-system",
+        "title": "Deep Work in a Distracted World: A Realistic System",
+        "category": "Productivity",
+        "words": 128
+    },
+    {
+        "id": 21,
+        "slug": "zettelkasten-note-taking-simple",
+        "title": "Note-Taking for Knowledge Workers: Zettelkasten Made Simple",
+        "category": "Productivity",
+        "words": 94
+    },
+    {
+        "id": 22,
+        "slug": "freelance-niche-positioning",
+        "title": "Positioning Your Freelance Niche: Charge More by Choosing Less",
+        "category": "Freelancing",
+        "words": 103
+    },
+    {
+        "id": 23,
+        "slug": "client-onboarding-emails-scope-creep",
+        "title": "Client Onboarding Emails That Prevent Scope Creep",
+        "category": "Freelancing",
+        "words": 112
+    },
+    {
+        "id": 24,
+        "slug": "local-llms-laptop-guide",
+        "title": "Local LLMs on a Laptop: What Runs, and What It Is Actually Good For",
+        "category": "Artificial Intelligence",
+        "words": 107
+    }
+]

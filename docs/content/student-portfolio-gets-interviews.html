@@ -1,0 +1,125 @@
+<p>Your GPA opens doors narrowly. A transcript says you passed courses; it does not say you can take an ambiguous problem, build something that works, and ship it. A portfolio does — it answers a recruiter's only real question, "can this person ship?", in the seconds before the interview slot is given to someone else.</p><p>This is a full guide to building that portfolio: what to include (and what to cut), how recruiters actually scan your work, the anatomy of a project page that gets read, the write-up that makes you memorable, repository details people really check, and a worked example you can copy the shape of. Nothing here promises interviews — no honest article can — but every item below removes a reason for a reviewer to close the tab.</p>
+
+<h2>What a portfolio is actually for</h2>
+<p>A portfolio is not a gallery. It is an <em>evidence file</em> for a hiring claim. Every role you apply for comes with an implicit doubt — "can they handle real code, real users, real trade-offs?" — and your job is to pre-answer it with artifacts instead of adjectives.</p>
+<p>Think about how the work is actually consumed. A reviewer at a hiring company gives each candidate an initial pass measured in seconds. In that pass they are not reading your code; they are scanning for signals:</p>
+<ul>
+<li>Is there a <strong>live demo</strong> I can open without installing anything?</li>
+<li>Is there <strong>source code</strong> I can skim in one click?</li>
+<li>Do I understand in one sentence <strong>what the thing does and for whom</strong>?</li>
+<li>Does the project look <strong>finished</strong> — or abandoned halfway?</li>
+<li>Is there any sign a <strong>human with judgement</strong> built this, not just a tutorial followed?</li>
+</ul>
+<p>Design every page of your portfolio against those five questions, in that order. Everything else — the animated header, the personal philosophy page, the blog — is secondary.</p>
+
+<h2>Three projects beat ten</h2>
+<p>Depth signals skill; breadth of half-finished repos signals browsing. A single deployed project with tests, a real README and honest users outweighs a GitHub profile full of tutorial clones and abandoned starts. Recruiters do not count projects — they look for the best one, then check whether the others are noise.</p>
+<p>Aim for three projects, each covering a different kind of doubt:</p>
+<ul>
+<li><strong>One that proves you can build something complete.</strong> Deployed, with a database, authentication or whatever "done" means in your stack. This is your flagship.</li>
+<li><strong>One that proves you can work on real code.</strong> An open-source contribution, a maintained team project, or a codebase you inherited and improved. It shows you can read someone else's code and follow a process — see <a href="/post/git-workflows-team-scale">Git workflows that scale past five developers</a> for the habits that make this visible in your history.</li>
+<li><strong>One that proves taste or range.</strong> Something outside the course syllabus: a hardware hack, a data visualisation, a tool you built for your own workflow. It starts conversations interviews cannot.</li>
+</ul>
+<p>If you only have one good project, ship one good project. A portfolio of three weak items is worse than a portfolio of one strong one, because the reviewer's only sample is weak.</p>
+
+<h2>Anatomy of a strong project page</h2>
+<p>One page per project, one screen per answer. The structure that works is boring on purpose — familiarity lets the content speak:</p>
+<ul>
+<li><strong>Title + one-line pitch.</strong> "A scheduling tool that turns a shared calendar into bookable slots for university clubs." Noun, verb, user.</li>
+<li><strong>Two buttons, above the fold:</strong> <em>Live demo</em> and <em>Source</em>. Never buried in a paragraph.</li>
+<li><strong>The problem.</strong> Two or three sentences: who hurts, how much, why existing options fail them.</li>
+<li><strong>Your role and the stack.</strong> If it was a team project, say exactly what <em>you</em> built. Then the technologies, one line.</li>
+<li><strong>A screenshot or two.</strong> The product itself, not stock imagery. Alt text that describes what is shown.</li>
+<li><strong>How it works.</strong> Four to six bullets on the interesting decisions — data model, key algorithm, the third-party service you rejected and why.</li>
+<li><strong>Result and status.</strong> Honest: deployed since when, how many users if you can say, what is missing, what you would do next.</li>
+<li><strong>Trade-offs.</strong> The section almost nobody writes, and the one that reads as senior.</li>
+</ul>
+<figure><img src="/assets/img/diagrams/student-portfolio-gets-interviews-project-page-wireframe.svg" alt="Wireframe of a portfolio project page: pitch line and demo and source buttons at the top, then problem, role and stack, screenshot, how it works, and trade-offs sections, with notes on what recruiters look for in each block"><figcaption>Project page wireframe: every block answers one hiring doubt, in the order a reviewer asks it.</figcaption></figure>
+<table><thead><tr><th>Block</th><th>Doubt it answers</th><th>Failure mode to avoid</th></tr></thead><tbody>
+<tr><td>Pitch line</td><td>What is this and who is it for?</td><td>"A full-stack application using modern technologies"</td></tr>
+<tr><td>Demo + source buttons</td><td>Can I verify this quickly?</td><td>Links hidden at the bottom, or a dead demo</td></tr>
+<tr><td>Problem</td><td>Was there a real need, or homework?</td><td>Leading with the tech stack instead of the user</td></tr>
+<tr><td>Role + stack</td><td>What did <em>you</em> do?</td><td>Vague "we" with no individual ownership</td></tr>
+<tr><td>How it works</td><td>Is there engineering here?</td><td>Repeating the README's install steps</td></tr>
+<tr><td>Trade-offs</td><td>Does this person have judgement?</td><td>Skipping it — the strongest section is missing</td></tr>
+</tbody></table>
+
+<h2>Show the reasoning, not just the result</h2>
+<p>Anyone can follow a tutorial to a finished app. What is rare — and what interviewers remember — is written engineering reflection: the trade-off you weighed, the mistake you made, what you would change with another month. Honest reflection signals seniority faster than a long feature list, because it proves you were paying attention while building.</p>
+<p>Write it in the page's "How it works" and "Trade-offs" sections, in plain language, in the past tense:</p>
+<ul>
+<li>"I used server-side sessions instead of tokens because the app is single-domain and I did not want to manage refresh expiry. If it grew to mobile clients, I would revisit that."</li>
+<li>"The first version stored derived totals; recomputing them on read removed a whole class of sync bugs at the cost of a slightly heavier query."</li>
+<li>"I added a test suite after a pagination bug reached users; the suite now covers exactly the four endpoints that ever broke."</li>
+<li>"The biggest mistake was starting the UI before settling the data model — two rewrites followed."</li>
+</ul>
+<p>Keep the register factual, not confessional. You are demonstrating judgement, not performing failure.</p>
+
+<h2>Repository hygiene: what reviewers actually open</h2>
+<p>After the page, the second click goes to your code. Five minutes of reviewer patience is the budget. What they check, roughly in order:</p>
+<ul>
+<li><strong>README quality.</strong> What it is, how to run it in three commands, screenshot, and a short architecture paragraph. A README is a writing sample.</li>
+<li><strong>Commit history.</strong> Readable messages ("fix cart total rounding") beat fifty commits named "update" and one named "final final". History is your process artifact.</li>
+<li><strong>One clean structure.</strong> Monorepo or separate repos — both fine; a repo that mixes five experiments is not.</li>
+<li><strong>Secrets.</strong> No API keys in history, no <code>.env</code> committed. This alone can end a candidacy for security-relevant roles.</li>
+<li><strong>Dependency and licence basics.</strong> A lockfile, a pinned toolchain, and a LICENSE file so anyone can legally read it.</li>
+<li><strong>Tests where they matter.</strong> Not 100% coverage theatre — a handful of meaningful tests on the logic that breaks expensively. Patterns like the ones in <a href="/post/clean-code-php-patterns">clean code patterns for PHP</a> show well here if that is your stack.</li>
+</ul>
+
+<h2>Make it findable</h2>
+<p>The original advice stands, compressed into a checklist you can verify in ten minutes on your phone:</p>
+<ul>
+<li>Clean domain, fast load, mobile friendly — a portfolio that breaks on a phone loses the reviewer who opens it on the train.</li>
+<li>Links to live demo and source code up front, on every project page, never behind a contact form.</li>
+<li>One page per project: problem, approach, result.</li>
+<li>Your name, email and GitHub/LinkedIn in the footer of every page — do not make a recruiter hunt for how to reach you.</li>
+<li>A short "About" that states what you are looking for ("backend roles from June, open to internships") in two sentences.</li>
+<li>Working <code>mailto:</code>, no autoplay audio, no cookie-wall, no popup newsletter modal. Friction is disqualifying at this stage.</li>
+</ul>
+
+<h2>Worked example: one project, end to end</h2>
+<p>An illustrative outline — substitute your own project and your own numbers. This is the shape of a page that gives a reviewer everything in one scroll:</p>
+<table><thead><tr><th>Section</th><th>Illustrative content</th></tr></thead><tbody>
+<tr><td>Title + pitch</td><td><strong>RoomBook</strong> — bookable study-room reservations for the campus library, used by three student societies.</td></tr>
+<tr><td>Buttons</td><td>[Live demo] [Source] — both real, both working.</td></tr>
+<tr><td>Problem</td><td>Rooms were claimed on a whiteboard; disputes were settled by whoever showed up first. No account of who held a room when.</td></tr>
+<tr><td>Role + stack</td><td>Solo project. PHP 8, MySQL, deployed on shared hosting with automated nightly backups.</td></tr>
+<tr><td>How it works</td><td>Slot table with a unique constraint per room and time range, so double-booking is rejected by the database, not by hope. Queued email reminders. Admin view for library staff.</td></tr>
+<tr><td>Result</td><td>Running for two semesters; the library staff now export occupancy reports from it. Missing: recurring bookings, which would need a slot-expansion routine.</td></tr>
+<tr><td>Trade-offs</td><td>Chose server-rendered pages over a single-page app because the audience was on bad campus Wi-Fi. Cost: every interaction is a round trip. Would revisit with a service worker.</td></tr>
+<tr><td>What I would change</td><td>Add the recurring-bookings routine and split the reservation logic behind an interface before adding a mobile client.</td></tr>
+</tbody></table>
+<p>Every row is answerable by an undergraduate in a semester. Nothing here required a novel algorithm — it required finishing, documenting, and deploying.</p>
+
+<h2>Common mistakes</h2>
+<ul>
+<li><strong>Tutorial graveyards.</strong> Ten repos that all follow the same course, renamed. If two projects solve the same problem, merge or delete.</li>
+<li><strong>Dead links.</strong> A demo that 404s is worse than no demo — it reads as abandonment. Check all links before every application round.</li>
+<li><strong>Readme-as-install-script.</strong> No context, no screenshots, no "why". Reviewers bounce.</li>
+<li><strong>Undisclosed team work.</strong> Claiming a group project as solo collapses at the first follow-up question. Attribute honestly, describe your part precisely.</li>
+<li><strong>Overbuilding the wrapper.</strong> Weeks on a logo and a WebGL landing page, days on the actual product. Priorities are visible to reviewers.</li>
+<li><strong>Only-school projects.</strong> Zero assigned projects is a gap, but zero <em>self-directed</em> ones is a larger gap.</li>
+<li><strong>Perfectionism.</strong> An honest v1 shipped beats a perfect v2 that exists only in your head. Deploy, then iterate in public — the commit history becomes evidence of exactly that.</li>
+</ul>
+
+<h2>Honest limits: what a portfolio cannot do</h2>
+<p>Be clear-eyed about scope, or the advice stops being useful:</p>
+<ul>
+<li>Portfolios carry different weight by field. Backend, frontend and infrastructure work translates well to demos; some regulated or embedded roles cannot be shown publicly at all — in that case, describe the problem class and your contribution without leaking the employer's details.</li>
+<li>Some hiring processes never look. Large companies route graduates through online assessments first; the portfolio matters at the interview stage and in smaller teams. It is a strong second-stage artifact, not a substitute for applications.</li>
+<li>No artifact guarantees an outcome. What a good portfolio removes are the reasons to say no — a different and more controllable goal.</li>
+<li>It ages. A project last touched three years ago should either be refreshed or honestly labelled as older work.</li>
+</ul>
+<p>One more limit worth stating: a portfolio built only for recruiters dies quickly. The projects that survive review are usually the ones you would have built anyway, just finished and documented properly.</p>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>A portfolio is an evidence file for the claim "I can ship" — design it for a scan that lasts seconds.</li>
+<li>Three deep, finished, deployed projects beat ten tutorial clones; your best project is the only one many reviewers will open.</li>
+<li>Each project page answers one doubt per block: pitch, demo and source, problem, role, how it works, trade-offs.</li>
+<li>Write the reasoning — trade-offs, mistakes, what you would change. It reads as senior and it is rare.</li>
+<li>Repository hygiene is part of the portfolio: README, readable commits, no secrets, tests where they matter.</li>
+<li>Findability is not vanity: fast, mobile, links up front, reachable by email.</li>
+<li>Check every link before every application round, and label team work honestly.</li>
+</ul>
+<p>Your next step is smaller than "build a portfolio". Pick the strongest thing you have already built, deploy it today on whatever cheap hosting you can get, and write a README with a one-line pitch, three run commands and a screenshot. Then give it the project-page treatment above. One finished, documented, linkable project is the beginning — and it is the thing your next interview will actually be about, which is why the <a href="/post/interview-prep-star-method">STAR method and story-bank preparation</a> in our companion piece is the natural next read once the demo link is live. If the build itself is what you want to strengthen first, the study system in <a href="/post/evidence-based-learning-techniques">evidence-based learning techniques</a> is how you learn a new stack without stalling the portfolio for months.</p>

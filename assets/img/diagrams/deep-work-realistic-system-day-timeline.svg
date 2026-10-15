@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="Timeline of an illustrative workday with two deep-focus blocks and scheduled shallow work">
+  <rect width="900" height="520" fill="#ffffff"/>
+  <text x="60" y="46" font-family="Manrope, Arial, sans-serif" font-size="22" font-weight="700" fill="#14161c">One defended day (illustrative)</text>
+  <text x="60" y="72" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Two 90-minute deep blocks; everything else has an explicit slot.</text>
+
+  <!-- time ticks -->
+  <g font-family="Manrope, Arial, sans-serif" font-size="12" fill="#5a6070">
+    <text x="68" y="200" transform="rotate(-50 68 200)" text-anchor="end">08:30</text>
+    <text x="91" y="200" transform="rotate(-50 91 200)" text-anchor="end">08:45</text>
+    <text x="231" y="200" transform="rotate(-50 231 200)" text-anchor="end">10:15</text>
+    <text x="278" y="200" transform="rotate(-50 278 200)" text-anchor="end">10:45</text>
+    <text x="395" y="200" transform="rotate(-50 395 200)" text-anchor="end">12:00</text>
+    <text x="488" y="200" transform="rotate(-50 488 200)" text-anchor="end">13:00</text>
+    <text x="628" y="200" transform="rotate(-50 628 200)" text-anchor="end">14:30</text>
+    <text x="815" y="200" transform="rotate(-50 815 200)" text-anchor="end">16:30</text>
+    <text x="838" y="200" transform="rotate(-50 838 200)" text-anchor="end">16:45</text>
+  </g>
+
+  <!-- timeline segments -->
+  <g stroke="#14161c" stroke-width="1.5">
+    <rect x="70" y="210" width="23" height="76" fill="#5a6070"/>
+    <rect x="93" y="210" width="140" height="76" fill="#1f4fd8"/>
+    <rect x="233" y="210" width="47" height="76" fill="#f7f6f2"/>
+    <rect x="280" y="210" width="117" height="76" fill="#5a6070"/>
+    <rect x="397" y="210" width="93" height="76" fill="#f7f6f2"/>
+    <rect x="490" y="210" width="140" height="76" fill="#1f4fd8"/>
+    <rect x="630" y="210" width="187" height="76" fill="#5a6070"/>
+    <rect x="817" y="210" width="23" height="76" fill="#e8402a"/>
+  </g>
+
+  <!-- in-segment labels -->
+  <g font-family="Manrope, Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle">
+    <text x="163" y="245" fill="#ffffff">Deep block 1</text>
+    <text x="163" y="265" fill="#ffffff" font-weight="400">90 min &#183; one task</text>
+    <text x="338" y="254" fill="#ffffff">meetings</text>
+    <text x="443" y="254" fill="#14161c" font-weight="400">lunch</text>
+    <text x="560" y="245" fill="#ffffff">Deep block 2</text>
+    <text x="560" y="265" fill="#ffffff" font-weight="400">90 min &#183; one task</text>
+    <text x="723" y="254" fill="#ffffff">meetings &#38; errands</text>
+  </g>
+
+  <!-- annotations -->
+  <line x1="163" y1="352" x2="163" y2="294" stroke="#1f4fd8" stroke-width="2" marker-end="url(#tickBlue)"/>
+  <text x="163" y="374" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070" text-anchor="middle">inbox closed, chat off, phone in another room</text>
+
+  <line x1="560" y1="352" x2="560" y2="294" stroke="#1f4fd8" stroke-width="2" marker-end="url(#tickBlue)"/>
+  <text x="560" y="374" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070" text-anchor="middle">start with the written first step; same rules</text>
+
+  <line x1="300" y1="440" x2="300" y2="294" stroke="#5a6070" stroke-width="2" marker-end="url(#tickGrey)"/>
+  <text x="300" y="462" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070" text-anchor="middle">chat, email and replies are batched here</text>
+
+  <line x1="723" y1="352" x2="723" y2="294" stroke="#5a6070" stroke-width="2" marker-end="url(#tickGrey)"/>
+  <text x="760" y="374" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070" text-anchor="end">no new deep work attempted after lunch</text>
+
+  <line x1="828" y1="404" x2="828" y2="294" stroke="#e8402a" stroke-width="2" marker-end="url(#tickRed)"/>
+  <text x="860" y="426" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#e8402a" text-anchor="end">shutdown: scratchpad cleared, tomorrow&#8217;s priority written</text>
+
+  <!-- legend -->
+  <g font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">
+    <rect x="60" y="490" width="24" height="12" fill="#1f4fd8"/>
+    <text x="92" y="501">deep block</text>
+    <rect x="190" y="490" width="24" height="12" fill="#5a6070"/>
+    <text x="222" y="501">meetings / admin</text>
+    <rect x="370" y="490" width="24" height="12" fill="#f7f6f2" stroke="#14161c" stroke-width="1"/>
+    <text x="402" y="501">shallow window / break</text>
+    <rect x="590" y="490" width="24" height="12" fill="#e8402a"/>
+    <text x="622" y="501">shutdown ritual</text>
+  </g>
+
+  <defs>
+    <marker id="tickBlue" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#1f4fd8"/>
+    </marker>
+    <marker id="tickGrey" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#5a6070"/>
+    </marker>
+    <marker id="tickRed" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#e8402a"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,0 +1,110 @@
+<p>Teams reach for fine-tuning when they should be retrieving, and vice versa. The choice is less about hype and more about where your knowledge lives and what you are actually trying to change: facts, or behaviour. This article gives you a criteria-based way to decide, a decision framework you can run in ten minutes, a worked (hypothetical) example of each path, and the combinations that cover the cases neither option solves alone.</p>
+
+<h2>The short answer</h2>
+<p>Use <strong>retrieval-augmented generation (RAG)</strong> when the model needs knowledge — your documents, tickets, policies, product data — that changes over time, must be cited, or must never leak into a shared artifact. Use <strong>fine-tuning</strong> when the problem is behaviour: the model already knows enough, but you want a consistent tone, output format, domain vocabulary, or task pattern that prompting keeps failing to enforce. If neither of those sentences describes your problem, prompting with good context is probably enough, and both options are premature.</p>
+<p>Keep one sentence in mind throughout: <em>retrieval changes what the model reads; fine-tuning changes how the model writes.</em> Almost every argument between the two is really an argument about which of those you lack.</p>
+
+<h2>What RAG actually does</h2>
+<p>RAG keeps knowledge <em>outside</em> the model, in a searchable index, and injects the relevant pieces into the context at request time. The mechanics:</p>
+<ul>
+  <li><strong>Ingestion:</strong> documents are split into chunks, each chunk is turned into an embedding vector, and stored in a vector index (often alongside full-text search — many production systems combine both).</li>
+  <li><strong>Retrieval:</strong> the incoming question is embedded with the same model, and the index returns the most similar chunks, optionally reranked by a stronger model.</li>
+  <li><strong>Assembly:</strong> the retrieved chunks are placed into the prompt together with the task instructions and constraints — the job described in <a href="/post/context-engineering-over-prompt-engineering">context engineering</a>.</li>
+  <li><strong>Generation:</strong> the frozen base model answers from that context, ideally pointing to which chunk supports each claim.</li>
+</ul>
+<p>What this buys you:</p>
+<ul>
+  <li><strong>Freshness without retraining.</strong> Updating a fact is an index update — minutes of work, not a training run.</li>
+  <li><strong>Citations and auditability.</strong> Because every answer is grounded in retrieved chunks, you can show the reader the source passage.</li>
+  <li><strong>One base model, many knowledge domains.</strong> Swap or re-rank indexes without touching weights; a single deployment can serve several document sets.</li>
+  <li><strong>Access control at query time.</strong> Retrieval can filter chunks by user permissions, so two users can hit the same model and see different evidence. Fine-tuning cannot do this — trained weights leak to everyone who can query the model.</li>
+</ul>
+<p>What it does not buy you: RAG does not reliably change tone, it cannot teach a new output format, and every retrieval miss becomes a generation miss. Its failure mode is quiet — plausible answers built on the wrong chunk.</p>
+
+<h2>What fine-tuning actually does</h2>
+<p>Fine-tuning continues training on a curated set of examples so the model's weights shift toward the behaviour you demonstrated. In practice teams use parameter-efficient methods (adapters such as LoRA-style fine-tunes) that train a small set of additional weights and keep the base model frozen, which makes runs cheaper and variants swappable. What it can and cannot change:</p>
+<ul>
+  <li><strong>It changes behaviour:</strong> tone, formatting, refusal style, domain vocabulary, the shape of a structured output, recurring task patterns like classification or extraction.</li>
+  <li><strong>It bakes in style, not up-to-date facts.</strong> Stuffing facts into training data is a poor knowledge store: the model learns them unreliably, cannot cite them, and you have no way to delete one fact without retraining.</li>
+  <li><strong>It needs examples, not documents.</strong> The unit of fine-tuning data is a worked input/output pair at the quality you want. Curating a few hundred to a few thousand consistent examples is usually the hardest part of the project.</li>
+  <li><strong>It creates a maintenance artifact.</strong> Every base-model update means retraining; every behaviour change means a new dataset version and an evaluation run.</li>
+</ul>
+<p>The clearest signal that fine-tuning is the right tool: your prompt is already correct, your context already contains the right information, and the model <em>still</em> answers in the wrong style or format. If the information is missing instead, fine-tuning will only teach it to produce wrong answers more confidently.</p>
+
+<h2>The criteria that decide it</h2>
+<table>
+  <thead>
+    <tr><th>Criterion</th><th>Choose RAG when…</th><th>Choose fine-tuning when…</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Knowledge freshness</td><td>Facts change weekly, daily, or on demand</td><td>The knowledge is stable and changes rarely</td></tr>
+    <tr><td>Source citation</td><td>Users must see which document supports an answer</td><td>Citations are not required</td></tr>
+    <tr><td>Behaviour / format</td><td>Model already writes well; you need different content</td><td>Prompting fails to hold tone, format or vocabulary</td></tr>
+    <tr><td>Private data isolation</td><td>Different users must see different evidence</td><td>All users may share the same learned behaviour</td></tr>
+    <tr><td>Per-request latency</td><td>You can absorb a retrieval step before generation</td><td>Every millisecond of pre-generation work is unacceptable</td></tr>
+    <tr><td>Cost structure</td><td>You want spend tied to query volume and index storage</td><td>You accept an upfront training cost for a stable change</td></tr>
+    <tr><td>Data you can produce</td><td>You have documents in a searchable form</td><td>You can author high-quality input/output examples</td></tr>
+    <tr><td>Failure visibility</td><td>Retrieval misses can be logged, inspected, fixed</td><td>Output drift can be caught by an evaluation set</td></tr>
+    <tr><td>Deletion / compliance</td><td>Individual facts must be removable on request</td><td>The learned behaviour itself is acceptable to keep</td></tr>
+  </tbody>
+</table>
+<p>There are no numbers in that table on purpose. Latency, cost and quality differences between the options vary enormously with model size, hardware, index size and workload shape, so any universal figure would be misleading; instead, reason about the <em>structure</em> of each cost and measure your own system.</p>
+
+<h2>Walking the criteria</h2>
+<h3>Freshness and citability</h3>
+<p>Ask one question: does the answer depend on something that could change after you build the feature? If yes, retrieval is not optional — fine-tuned weights cannot be patched. A pricing policy, an on-call schedule, a product catalog: all retrieval. A house style guide, an output schema, the general shape of a good SQL review: all candidates for fine-tuning, because they change on a timescale of months.</p>
+<h3>Latency</h3>
+<p>RAG adds a retrieval (and often a reranking) step before generation — work that runs serially after the user's request arrives. Fine-tuning adds nothing at query time. If your budget for a whole response is tight, retrieval quality choices (smaller index, single-stage retrieval, cached answers for frequent questions) matter more than model choice.</p>
+<h3>Cost structure</h3>
+<p>RAG spends money continuously: index storage, embedding calls for ingestion, retrieval compute, and the larger prompts that retrieved chunks produce. Fine-tuning spends money up front — dataset curation (the expensive part), training runs, evaluation — and little after, until the base model or the desired behaviour changes. Neither is categorically cheaper; they fail at different budget lines.</p>
+<h3>Security and compliance</h3>
+<p>This criterion alone decides projects. If per-user document permissions matter, RAG with query-time filtering is effectively the only option of the two: fine-tuning merges all training data into shared weights. If your deployment is fully offline for privacy reasons, the question moves upstream — including the weights may push you toward running an open-weight model locally, which is exactly what <a href="/post/local-llms-laptop-guide">the local LLM guide</a> covers.</p>
+
+<h2>A decision framework</h2>
+<p>Run these questions in order; the first "yes" usually settles it.</p>
+<figure><img src="/assets/img/diagrams/rag-vs-fine-tuning-llm-decision-tree.svg" alt="Flowchart: starting from the goal of specialising an LLM, asking first whether answers depend on fresh or private facts (yes leads to RAG), then whether the behaviour itself must change (yes leads to fine-tuning), and otherwise concluding that prompting is enough"><figcaption>Decision order: knowledge first, behaviour second, prompting as the default fallback.</figcaption></figure>
+<ol>
+  <li><strong>Do the answers depend on facts that change, or on private data?</strong> Yes → RAG. Stop here unless the second problem also exists.</li>
+  <li><strong>Does the behaviour itself need to change — tone, format, task pattern?</strong> Yes → fine-tuning, with a plan for examples and evaluation.</li>
+  <li><strong>Is the prompt just… not good yet?</strong> Then you are early in the process, not at a crossroads: fix the context and instructions first, and revisit this framework once prompting plateaus. The default ordering is still the original one — start with retrieval plus strong prompting, fine-tune only after prompt fatigue is measurable, and budget for evaluation either way, because you cannot improve what you do not measure.</li>
+</ol>
+
+<h2>A worked example (hypothetical)</h2>
+<p>Imagine a support assistant for a B2B invoicing product. Both techniques apply to it — at different layers — which makes it a useful illustration.</p>
+<ul>
+  <li><strong>The knowledge problem:</strong> answers must reflect current plan limits, this quarter's pricing, and the changelog. These change constantly and must be citable when a customer disputes a charge. → <strong>RAG</strong> over the help center, pricing page and changelog, with permissions filtered per account tier.</li>
+  <li><strong>The behaviour problem:</strong> default model answers are too chatty, open with apologies, and bury the fix below three paragraphs of preamble. Repeated prompt instructions reduce this but never eliminate it. → <strong>Fine-tune</strong> on a few hundred curated conversations showing the tone you want: lead with the fix, one sentence of empathy, then the steps.</li>
+  <li><strong>The layer underneath both:</strong> neither works without a small evaluation set — say, a set of real (anonymised) customer questions with the answers your best human would accept, run before every change to retrieval, prompt, or model. This is the artifact that turns "we think it improved" into a number your team can point at.</li>
+</ul>
+<p>Note the order of work: prompts and retrieval first, fine-tuning last. In most teams the fine-tuning step turns out to be unnecessary once retrieval quality and context assembly are fixed — which is exactly why the framework puts it behind two gates.</p>
+
+<h2>Combinations and middle options</h2>
+<p>The dichotomy is useful but not exhaustive. Between "just prompt" and "train weights" there is a gradient:</p>
+<ul>
+  <li><strong>Prompting + context engineering alone.</strong> Cheapest to try, fastest to change, and the correct first move for most tasks.</li>
+  <li><strong>RAG with reranking and query rewriting.</strong> A quality upgrade inside the retrieval path — better chunks in the context without touching the model.</li>
+  <li><strong>RAG + fine-tuning together.</strong> Legitimate and common at scale: retrieval supplies the facts, fine-tuning supplies the format and tone. If you do this, evaluate each part separately or you will never know which change helped.</li>
+  <li><strong>Tool use / function calling.</strong> When the "knowledge" is actually live system state — an order status, a database row — a tool call is more honest than a document retrieval, and avoids pretending a snapshot is knowledge.</li>
+</ul>
+
+<h2>Common mistakes</h2>
+<ul>
+  <li><strong>Fine-tuning to inject facts.</strong> The most expensive mistake in this space: slow, unciteable, undeletable, and unreliable for recall.</li>
+  <li><strong>Building RAG for a style problem.</strong> If the retrieved text is already in the prompt and the output format is still wrong, no amount of retrieval tuning will fix the format.</li>
+  <li><strong>No evaluation set before either project.</strong> Without one, both projects become vibes: you cannot tell regression from improvement.</li>
+  <li><strong>Chunking by page count instead of by meaning.</strong> Retrieval quality is decided at ingestion; chunks that split an answer from its context produce confident, wrong generations.</li>
+  <li><strong>Skipping the prompt-fatigue measurement.</strong> Teams often fine-tune because prompting felt frustrating, not because it was measured to be failing.</li>
+  <li><strong>Assuming the newest base model needs the same treatment.</strong> Model behaviour shifts release to release; both decisions are version-sensitive, so re-check them (as of October 2026) whenever you change base models.</li>
+</ul>
+
+<h2>Key takeaways</h2>
+<ul>
+  <li>Retrieval changes what the model reads; fine-tuning changes how the model writes. Identify which one you lack before choosing a tool.</li>
+  <li>Fresh, private or citable knowledge → RAG. Stable behaviour, format or vocabulary → fine-tuning. Neither → fix your prompting first.</li>
+  <li>Cost and latency differences are structural, not absolute: RAG is a recurring spend plus a per-request step; fine-tuning is an upfront spend plus a maintenance burden.</li>
+  <li>Permissions-sensitive data makes RAG with query-time filtering effectively mandatory; fine-tuned weights are shared with everyone who can query the model.</li>
+  <li>The two techniques compose: the common production pattern is retrieval for facts, fine-tuning for format, evaluation for both.</li>
+  <li>No evaluation set, no decision — build a small graded test set from real questions before you choose anything.</li>
+</ul>
+
+<p>Your next step: take your actual use case and write three sentences — what knowledge it needs, how often that knowledge changes, and what is wrong with the model's current <em>style</em>. If you cannot fill in the third sentence, you have your answer. If you want the underlying mechanics of why retrieval-in-context works at all, start with <a href="/post/how-large-language-models-actually-work">how large language models actually work</a>.</p>

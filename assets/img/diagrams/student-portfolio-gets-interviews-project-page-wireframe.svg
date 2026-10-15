@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="Wireframe of a portfolio project page with annotation notes">
+  <rect width="900" height="520" fill="#ffffff"/>
+  <text x="60" y="48" font-family="Manrope, Arial, sans-serif" font-size="22" font-weight="700" fill="#14161c">Project page: one block, one hiring doubt</text>
+
+  <!-- page frame -->
+  <rect x="70" y="80" width="380" height="410" rx="14" fill="#f7f6f2" stroke="#14161c" stroke-width="2"/>
+
+  <!-- blocks -->
+  <rect x="92" y="104" width="336" height="46" rx="8" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="106" y="126" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c" font-weight="700">Title + one-line pitch</text>
+  <text x="106" y="144" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">"what it is, for whom"</text>
+
+  <rect x="92" y="160" width="160" height="36" rx="8" fill="#1f4fd8"/>
+  <text x="118" y="183" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#ffffff" font-weight="700">Live demo</text>
+  <rect x="264" y="160" width="164" height="36" rx="8" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="302" y="183" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#1f4fd8" font-weight="700">Source code</text>
+
+  <rect x="92" y="208" width="336" height="40" rx="8" fill="#ffffff" stroke="#14161c" stroke-width="1.5"/>
+  <text x="106" y="233" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">The problem (2&#8211;3 sentences)</text>
+
+  <rect x="92" y="260" width="336" height="40" rx="8" fill="#ffffff" stroke="#14161c" stroke-width="1.5"/>
+  <text x="106" y="285" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">Your role + stack (one line)</text>
+
+  <rect x="92" y="312" width="336" height="62" rx="8" fill="#ffffff" stroke="#5a6070" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="196" y="349" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#5a6070">screenshot of the real thing</text>
+
+  <rect x="92" y="386" width="336" height="40" rx="8" fill="#ffffff" stroke="#14161c" stroke-width="1.5"/>
+  <text x="106" y="411" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">How it works (4&#8211;6 bullets)</text>
+
+  <rect x="92" y="438" width="336" height="38" rx="8" fill="#ffffff" stroke="#e8402a" stroke-width="2"/>
+  <text x="106" y="462" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#e8402a" font-weight="700">Trade-offs &#38; what I would change</text>
+
+  <!-- annotations -->
+  <text x="510" y="118" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Answers &#8220;what is this?&#8221;</text>
+  <line x1="502" y1="113" x2="436" y2="126" stroke="#1f4fd8" stroke-width="2" marker-end="url(#pin)"/>
+
+  <text x="510" y="176" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Answers &#8220;can I verify it?&#8221;</text>
+  <line x1="502" y1="171" x2="436" y2="178" stroke="#1f4fd8" stroke-width="2" marker-end="url(#pin)"/>
+
+  <text x="510" y="230" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Answers &#8220;is there a real need?&#8221;</text>
+  <line x1="502" y1="225" x2="436" y2="228" stroke="#1f4fd8" stroke-width="2" marker-end="url(#pin)"/>
+
+  <text x="510" y="282" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Answers &#8220;what did you do?&#8221;</text>
+  <line x1="502" y1="277" x2="436" y2="280" stroke="#1f4fd8" stroke-width="2" marker-end="url(#pin)"/>
+
+  <text x="510" y="344" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Answers &#8220;is it finished?&#8221;</text>
+  <line x1="502" y1="339" x2="436" y2="343" stroke="#1f4fd8" stroke-width="2" marker-end="url(#pin)"/>
+
+  <text x="510" y="404" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Answers &#8220;is there engineering?&#8221;</text>
+  <line x1="502" y1="399" x2="436" y2="406" stroke="#1f4fd8" stroke-width="2" marker-end="url(#pin)"/>
+
+  <text x="510" y="456" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#e8402a">Answers &#8220;does this person have judgement?&#8221;</text>
+  <line x1="502" y1="451" x2="436" y2="457" stroke="#e8402a" stroke-width="2" marker-end="url(#pin2)"/>
+
+  <text x="510" y="492" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">Demo &#43; source links stay above the fold &#8212; never at the bottom.</text>
+
+  <defs>
+    <marker id="pin" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#1f4fd8"/>
+    </marker>
+    <marker id="pin2" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#e8402a"/>
+    </marker>
+  </defs>
+</svg>

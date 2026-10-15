@@ -1,0 +1,118 @@
+<p>Most note systems collapse under their own weight because they optimise capture instead of retrieval. A folder tree with 400 files, thousands of highlighted passages, a inbox of clippings — all of it feels productive and all of it fails at the only moment that matters: when you sit down to write, think, or solve something and cannot find the half-understanding you recorded six months ago.</p><p>Zettelkasten is the alternative: a small collection of atomic, self-written notes, each holding one idea, connected by explicit links instead of buried in a hierarchy. It is less work than the systems it replaces, not more — an hour a week instead of an hour of frantic searching later. This article explains the method concretely: what an atomic note is, how linking replaces filing, a fully worked example chain from raw capture to a connected structure, how it compares to folders and highlights, the daily practice, and the pitfalls that make people abandon it.</p>
+
+<h2>What a Zettelkasten is — and is not</h2>
+<p>The original Zettelkasten ("slip-box" in German) was a physical box of numbered index cards used by social scientists for decades; the digital versions keep the logic and lose the cardboard. Four properties define it:</p>
+<ul>
+<li><strong>Atomic.</strong> One idea per note. Not one topic, not one chapter — one claim or one concept you could point at in a conversation.</li>
+<li><strong>Self-written.</strong> Notes are in <em>your</em> words, not the author's. Copying a passage stores someone else's thinking; rewriting it in your own language stores your understanding of it.</li>
+<li><strong>Linked.</strong> Notes reference each other directly ("this contradicts X", "this is a special case of Y"). The web of links is the index — there is no separate filing step to skip.</li>
+<li><strong>Bottom-up.</strong> Structure emerges from the links over time. You do not design a taxonomy on day one; you let one well-chosen link at a time build it.</li>
+</ul>
+<p>What it is not: a document repository, a knowledge base for your team, a second brain that remembers everything, or a substitute for actually doing things. It is a thinking tool — a set of interlocutors you have written for yourself.</p>
+
+<h2>Atomic notes: one idea, your words</h2>
+<p>The atomic note is the unit of the whole method, so it is worth being strict about the format. A working permanent note contains:</p>
+<ul>
+<li><strong>A title that states the claim.</strong> "Index writes cost something" beats "Indexes" — a titled claim can be linked to; a topic label can only be filed.</li>
+<li><strong>The idea in your own words</strong>, in two to ten sentences. Long enough to stand alone without the source, short enough to be one idea.</li>
+<li><strong>Source attribution</strong> — where the idea came from (book chapter, paper, lecture, your own experience). Attribution is for honesty and lookup, not for authority.</li>
+<li><strong>Links</strong> to two or more existing notes, with a phrase explaining <em>why</em> the link exists.</li>
+</ul>
+<p>The test for "is this one idea": could this note be argued with? If yes, it is atomic. "Notes on Chapter 4" cannot be argued with; "Composite indexes only help when the leading column is constrained" can. If you cannot summarise the idea in your own words, you have not understood it yet — and the honest move is a shorter note that says what you <em>did</em> understand, marked as provisional.</p>
+<p>Three sizes, three jobs, and it helps to keep them apart:</p>
+<ul>
+<li><strong>Fleeting notes</strong> — captured in seconds, anywhere. A sentence on your phone. They are inbox items, not knowledge.</li>
+<li><strong>Literature notes</strong> — one per source or per meaningful chunk of a source: what the author claims, in your words, plus the citation.</li>
+<li><strong>Permanent atomic notes</strong> — the real collection. One idea each, linked, citable, and written for future-you.</li>
+</ul>
+<p>The workflow is the conversion: fleeting becomes a literature note the same day; the interesting parts of literature notes become permanent notes over the following days. Unconverted fleeting notes are deleted without guilt — their job was to protect your attention at capture time, not to become content.</p>
+
+<h2>Links over folders</h2>
+<p>Folders force one classification per note, and every interesting idea has several. A note about caching belongs in "databases", "performance", "interview prep" and "the project I'm doing" — a folder tree makes you choose, and the note becomes invisible from every direction but the one you chose on the day you filed it. Links let a note live in all of those conversations at once. That is where originality comes from: not from storing more, but from noticing that two ideas from different domains touch.</p>
+<p>Useful link types, in rough order of how often they earn their place:</p>
+<ul>
+<li><strong>Evidence:</strong> this note supports that one.</li>
+<li><strong>Contradiction:</strong> this one argues against that one. Contradiction links are the most valuable in the box — they are drafts of essays.</li>
+<li><strong>Elaboration:</strong> this is a special case or a consequence of that.</li>
+<li><strong>Example:</strong> this concrete story illustrates that abstract claim.</li>
+<li><strong>Method:</strong> this technique addresses the problem described in that note.</li>
+</ul>
+<p>Write the link sentence, not just the link: "See <em>index writes cost something</em> — explains why this shop removed two of its five indexes." A bare link tells future-you the notes are related; a link sentence tells you <em>how</em>, which is the part you will have forgotten.</p>
+<p>Two structural habits keep the box navigable without folders: start notes that collect links on a theme (a "map of content" note — "SQL performance" linking to the six notes that concern it), and give new notes an ID that is sortable but meaningless (a timestamp works: <code>202610121430</code>), so ordering never becomes a decision.</p>
+
+<h2>A worked example: one idea, one chain</h2>
+<p>The following is an <strong>illustrative walkthrough</strong> — a developer reading about database performance, taking the method from capture to structure in a few days. The subject is SQL indexing; the shape is what transfers.</p>
+<p><strong>Day 1 — capture.</strong> You read a chapter on query performance. One sentence stops you: <em>a write pays for every index on the table, not just the index it uses.</em> You write a literature note in seconds:</p>
+<pre><code>Lit: Schema Design chapter, "Write paths"
+- Author's claim: every index on a table is a tax on INSERT/UPDATE,
+  because each one must be kept in sync, regardless of whether the
+  write touched that index.
+- Example given: an orders table with 7 indexes; bulk imports slowed
+  measurably after indexes 5-7 were added.
+- Related reading: the chapter section on dropping unused indexes.
+</code></pre>
+<p><strong>Day 2 — the first permanent note.</strong> In your own words, one claim:</p>
+<pre><code>202610121015 - Index writes cost something
+Every index on a table makes every write to that table do more work,
+even writes that never use the index. This is why "add an index" is
+not a free performance fix but a trade: read speed up, write cost up.
+Implication: unused indexes are pure cost; worth auditing.
+Source: Schema Design chapter.
+See also: [[202610121040 - Choose indexes from the query, not the table]]
+</code></pre>
+<p><strong>Days 3&#8211;5 — the chain grows sideways.</strong> From the same reading session and one from a colleague's code review, three more atomic notes appear, each linking to its neighbours:</p>
+<ul>
+<li><strong>Choose indexes from the query, not the table</strong> — reads the slow queries first, then indexes for them. Links to the write-cost note as its counterweight.</li>
+<li><strong>Composite indexes are ordered</strong> — the leading column decides usability; links to the query-first note as its consequence.</li>
+<li><strong>Drop the index nobody reads</strong> — the audit procedure you actually ran once. Links back to write-cost as motivation.</li>
+</ul>
+<p><strong>Week 2 — structure emerges.</strong> With eleven notes touching performance, a map-of-content note appears: "SQL performance", holding the claim-ordering: pick queries → choose indexes → pay the write cost → audit and drop. No folder was designed; the MOC note <em>is</em> the folder, and it is optional to delete at any time because the links survive. The chain's endpoint is not the box — it is the next slow query you meet, when you search your own notes and find a five-step procedure you wrote for yourself.</p>
+<figure><img src="/assets/img/diagrams/zettelkasten-note-taking-simple-note-chain.svg" alt="Diagram of a Zettelkasten chain: a fleeting note feeds a literature note with a citation, which spawns atomic permanent notes that link to each other and to a map-of-content note, which links out to a new note created later"><figcaption>One capture becomes a small connected structure: fleeting → literature → atomic notes, with a map of content tying them together.</figcaption></figure>
+
+<h2>How it differs from folders and highlights</h2>
+<table><thead><tr><th>Dimension</th><th>Folder tree</th><th>Highlights / clippings</th><th>Zettelkasten</th></tr></thead><tbody>
+<tr><td>Unit of storage</td><td>Documents, by topic</td><td>Quoted passages</td><td>One self-written idea</td></tr>
+<tr><td>Organising principle</td><td>One hierarchy chosen at filing time</td><td>Source</td><td>Direct links, chosen at reading time</td></tr>
+<tr><td>What it preserves</td><td>Where you filed it</td><td>Someone else's wording</td><td>Your understanding of it</td></tr>
+<tr><td>Retrieval path</td><td>Remember the folder</td><td>Remember the book and scroll</td><td>Search by idea, or arrive by link</td></tr>
+<tr><td>Failure mode</td><td>Note has several homes, so none</td><td>Thousands of clips, never re-read</td><td>Note sprawl without links (see pitfalls)</td></tr>
+<tr><td>Cost per item</td><td>Seconds to file</td><td>Seconds to highlight</td><td>Minutes to rewrite and link</td></tr>
+<tr><td>Payoff</td><td>Organised archive</td><td>Comfort</td><td>Reusable thinking</td></tr>
+</tbody></table>
+<p>The honest trade is the last row of the cost and payoff columns: a Zettelkasten is more expensive per note and that expense <em>is</em> the method. The five minutes of rewriting are the learning; the highlight you never rewrite is storage without thought.</p>
+
+<h2>The daily practice</h2>
+<p>The method survives only if the loop is small and daily. The original habits, in full form:</p>
+<ul>
+<li><strong>Capture, then rewrite before the day ends.</strong> Fleeting notes have a 24-hour expiry. Ten to fifteen minutes in the evening converts the day's captures into literature notes; anything unconverted is deleted.</li>
+<li><strong>Add one link to an existing note — always.</strong> Every new permanent note must reference at least one existing note, with a sentence explaining the relationship. This single rule is what stops a Zettelkasten from degenerating into a pile.</li>
+<li><strong>Review a random old note weekly.</strong> Open any note from three months ago, re-read it, and improve the title, the wording or its links. It takes minutes and it re-activates material you had forgotten you knew — the box teaches you what it already contains.</li>
+</ul>
+<p>Practical scaffolding that keeps the fifteen minutes honest: keep the collection open in a plain-text or notes app with fast search, not a plugin maze; write in Markdown so notes outlive any tool; and do the reading-source processing (papers, books, documentation) as its own small session — a good reading workflow like <a href="/post/how-to-read-research-paper">the three-pass method for research papers</a> produces exactly the raw material this loop expects.</p>
+
+<h2>Common pitfalls</h2>
+<ul>
+<li><strong>Mega-notes.</strong> "Databases.md" growing to two thousand words is a folder in disguise. Split it; the seams between ideas are the links.</li>
+<li><strong>Highlight-dumping.</strong> Pasting quotes without rewriting. If your collection is mostly quoted text, you have built a slower search engine for someone else's books.</li>
+<li><strong>Tool worship.</strong> Weeks spent comparing apps, plugins and sync setups. Any tool with fast search and Markdown export is sufficient; the method lives in the rewriting and linking.</li>
+<li><strong>Linking without sentences.</strong> Bare wikilinks with no stated relationship. Future-you learns nothing from a link graph without annotations.</li>
+<li><strong>Perfect taxonomy on day one.</strong> Designing tag hierarchies before you have twenty notes. Let structure emerge; MOC notes and a handful of tags are enough.</li>
+<li><strong>Capturing everything.</strong> The box is not an archive of your profession. The filter is "will I think with this again?" — if the answer is no, do not process it.</li>
+<li><strong>Never using it.</strong> A Zettelkasten you do not consult while working — writing, coding, preparing — is a diary. Attach it to real tasks: open it when you start something, add to it when something surprises you.</li>
+</ul>
+
+<h2>Notes that double as study material</h2>
+<p>There is a quiet synergy between this method and how memory actually works. A self-written atomic note is already a retrieval exercise — you produced the idea instead of re-reading it. A link sentence ("this contradicts…", "this follows from…") is exactly the kind of discrimination that exams and technical interviews test. And a map-of-content note is a ready-made mixed quiz: cover the linked notes, reconstruct each claim from the MOC's list.</p>
+<p>In practice, your own notes become the best study material you own — better than any commercial deck, because they are written in your language and aimed at your gaps. The mechanics of quizzing yourself on them, spacing the reviews, and mixing topics are covered in <a href="/post/evidence-based-learning-techniques">evidence-based learning techniques</a>; the deep-thinking sessions that produce the notes in the first place are the subject of <a href="/post/deep-work-realistic-system">building a realistic deep-work system</a>.</p>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>Optimise for retrieval, not capture — a note is only worth writing if future-you can think with it.</li>
+<li>Atomic notes: one arguable idea, your own words, a source, and links with sentences.</li>
+<li>Fleeting, literature and permanent notes play different roles; convert within a day or delete.</li>
+<li>Links beat folders because real ideas have several homes; let structure emerge through maps of content, not upfront taxonomies.</li>
+<li>The worked chain — capture, rewrite, link, cluster — takes minutes a day and compounds for years.</li>
+<li>Expect the cost per note to be higher than highlighting; that cost is the learning, and it is the point.</li>
+<li>Pitfalls are predictable: mega-notes, highlight dumps, tool worship, link-less graphs. The three daily habits prevent all of them.</li>
+</ul>
+<p>Your next step, tonight: take one highlight or one clippings item you saved in the last month, and turn it into a single atomic note — your words, a claim in the title, one link to any note or document you already have. That is the whole method at its smallest. Do it again tomorrow, and in a month the box will start answering questions you had forgotten you asked.</p>

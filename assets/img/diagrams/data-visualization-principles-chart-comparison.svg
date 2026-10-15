@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" role="img" aria-label="Comparison of the same six sample values plotted with a truncated axis and with a zero baseline">
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="40" y="40" font-family="Manrope, Arial, sans-serif" font-size="21" font-weight="700" fill="#14161c">The same six values, drawn twice (illustrative sample data)</text>
+
+  <!-- LEFT PANEL: axis truncated to 400-460 -->
+  <text x="90" y="76" font-family="Manrope, Arial, sans-serif" font-size="16" font-weight="700" fill="#e8402a">Misleading — value axis starts at 400</text>
+
+  <line x1="90" y1="100" x2="90" y2="400" stroke="#14161c" stroke-width="1.5"/>
+  <line x1="90" y1="400" x2="450" y2="400" stroke="#14161c" stroke-width="1.5"/>
+
+  <line x1="86" y1="400" x2="90" y2="400" stroke="#5a6070" stroke-width="1"/>
+  <text x="82" y="405" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">400</text>
+  <line x1="86" y1="300" x2="90" y2="300" stroke="#5a6070" stroke-width="1"/>
+  <text x="82" y="305" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">420</text>
+  <line x1="86" y1="200" x2="90" y2="200" stroke="#5a6070" stroke-width="1"/>
+  <text x="82" y="205" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">440</text>
+  <line x1="86" y1="100" x2="90" y2="100" stroke="#5a6070" stroke-width="1"/>
+  <text x="82" y="105" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">460</text>
+
+  <polyline points="130,340 186,250 242,275 298,165 354,195 410,110" fill="none" stroke="#1f4fd8" stroke-width="2.5"/>
+  <circle cx="130" cy="340" r="4" fill="#1f4fd8"/>
+  <circle cx="186" cy="250" r="4" fill="#1f4fd8"/>
+  <circle cx="242" cy="275" r="4" fill="#1f4fd8"/>
+  <circle cx="298" cy="165" r="4" fill="#1f4fd8"/>
+  <circle cx="354" cy="195" r="4" fill="#1f4fd8"/>
+  <circle cx="410" cy="110" r="4" fill="#1f4fd8"/>
+
+  <text x="130" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Jan</text>
+  <text x="186" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Feb</text>
+  <text x="242" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Mar</text>
+  <text x="298" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Apr</text>
+  <text x="354" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">May</text>
+  <text x="410" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Jun</text>
+
+  <text x="100" y="125" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#e8402a">value axis starts at 400 —</text>
+  <text x="100" y="146" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#e8402a">the same rise looks steeper</text>
+
+  <!-- RIGHT PANEL: honest zero baseline -->
+  <text x="540" y="76" font-family="Manrope, Arial, sans-serif" font-size="16" font-weight="700" fill="#1f4fd8">Honest — value axis starts at 0</text>
+
+  <line x1="540" y1="100" x2="540" y2="400" stroke="#14161c" stroke-width="1.5"/>
+  <line x1="540" y1="400" x2="880" y2="400" stroke="#14161c" stroke-width="1.5"/>
+
+  <line x1="536" y1="400" x2="540" y2="400" stroke="#5a6070" stroke-width="1"/>
+  <text x="532" y="405" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">0</text>
+  <line x1="536" y1="250" x2="540" y2="250" stroke="#5a6070" stroke-width="1"/>
+  <text x="532" y="255" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">250</text>
+  <line x1="536" y1="100" x2="540" y2="100" stroke="#5a6070" stroke-width="1"/>
+  <text x="532" y="105" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">500</text>
+
+  <polyline points="570,153 624,142 678,145 732,132 786,135 840,125" fill="none" stroke="#1f4fd8" stroke-width="2.5"/>
+  <circle cx="570" cy="153" r="4" fill="#1f4fd8"/>
+  <circle cx="624" cy="142" r="4" fill="#1f4fd8"/>
+  <circle cx="678" cy="145" r="4" fill="#1f4fd8"/>
+  <circle cx="732" cy="132" r="4" fill="#1f4fd8"/>
+  <circle cx="786" cy="135" r="4" fill="#1f4fd8"/>
+  <circle cx="840" cy="125" r="4" fill="#1f4fd8"/>
+
+  <text x="570" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Jan</text>
+  <text x="624" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Feb</text>
+  <text x="678" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Mar</text>
+  <text x="732" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Apr</text>
+  <text x="786" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">May</text>
+  <text x="840" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">Jun</text>
+
+  <text x="552" y="120" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">same gentle rise, honestly scaled</text>
+
+  <line x1="470" y1="90" x2="470" y2="430" stroke="#d8d6cf" stroke-width="1.5" stroke-dasharray="6 6"/>
+
+  <text x="40" y="462" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Both panels plot the identical six sample values (412, 430, 425, 447, 441, 458 signups) — only the axis differs.</text>
+  <text x="40" y="488" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Bars must always start at zero. If a line chart is zoomed, label the zoom so the slope is not mistaken for a surge.</text>
+</svg>

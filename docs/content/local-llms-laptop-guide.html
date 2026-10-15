@@ -1,0 +1,105 @@
+<p>Local models crossed the "genuinely useful" line — for specific jobs. Expectations are still where the disappointment comes from. This guide (figures as of October 2026) explains the arithmetic that decides what fits on your machine, gives you a typical-range table you can check against any model card, walks through a first local model end to end with a verification step, and then answers the honest question: what is this setup actually good for?</p>
+
+<h2>The short answer</h2>
+<p>On a current laptop with 16 GB of unified memory, a 7B–8B parameter model quantized to 4 bits runs comfortably — weights alone need roughly 4–5 GB, leaving room for context and the runtime itself. With 32 GB you can step up to the 13–14B class comfortably and attempt the 30B class with short contexts. The largest open-weight classes (70B and up) remain a desktop or eGPU story, not a laptop story, unless you accept slow, partially CPU-offloaded generation. None of this is benchmarking — it is arithmetic: a model's memory need is its parameter count multiplied by the bytes each weight is stored with, plus overhead.</p>
+<p>The second half of the answer is about usefulness. Local models are genuinely good at private summarisation, offline drafting and rewriting, classification and structured extraction, and as a cheap second opinion. They still lose at complex multi-step reasoning and world knowledge — and for those jobs, a hosted frontier model remains worth the money.</p>
+
+<h2>The only arithmetic you need</h2>
+<p>Model weights are stored at some bit-width — full 16-bit precision, or 8-bit, 4-bit and occasionally lower quantizations. The memory needed for the weights is simply:</p>
+<pre><code>weight memory ≈ parameters × (bits per weight ÷ 8)
+
+8B model at 4-bit  ≈ 8,000,000,000 × 0.5 bytes ≈ 4 GB
+8B model at 16-bit ≈ 8,000,000,000 × 2   bytes ≈ 16 GB</code></pre>
+<p>Two additions to that number, both of which catch first-time setups:</p>
+<ul>
+  <li><strong>Overhead for the runtime and the KV cache.</strong> The KV cache — the model's working memory for the tokens it is currently processing — grows with context length and with how many sequences you run at once. Budget at least a couple of GB beyond the weights at chat-length contexts, and noticeably more for very long documents. Check what the runtime reports as "model size" versus "peak memory" when you load something; the difference is this overhead.</li>
+  <li><strong>What "fits" means is not binary.</strong> A model whose weights barely fit leaves nothing for context, so generation degrades into swap thrashing. Aim for weights to occupy well under your available memory.</li>
+</ul>
+
+<h2>Typical memory by model class and quantization</h2>
+<p>The figures below are arithmetic from parameter counts, phrased as typical ranges — they are what model cards and runtime reports usually show, not measured results from this machine. Parameter counts and available quantizations change as new models ship, so treat this as of October 2026 and re-check against the specific model card you pick:</p>
+<table>
+  <thead>
+    <tr><th>Model class (approx. parameters)</th><th>4-bit weights (typical)</th><th>8-bit weights (typical)</th><th>16-bit weights (typical)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>3–4B</td><td>~2–2.5 GB</td><td>~3.5–4 GB</td><td>~7–8 GB</td></tr>
+    <tr><td>7–8B</td><td>~4–5 GB</td><td>~7.5–9 GB</td><td>~14–16 GB</td></tr>
+    <tr><td>13–14B</td><td>~7–8 GB</td><td>~14–16 GB</td><td>~26–28 GB</td></tr>
+    <tr><td>30–34B</td><td>~16–19 GB</td><td>~32–35 GB</td><td>~60–68 GB</td></tr>
+    <tr><td>70B</td><td>~35–40 GB</td><td>~68–72 GB</td><td>~135–145 GB</td></tr>
+  </tbody>
+</table>
+<p>Add the overhead discussed above to whichever cell you pick. Note also that lower-bit quantization is not free quality-wise: 4-bit typically trades some output quality and precision for the memory savings; 8-bit is the conservative choice when you have room. The trade-off is model-dependent, so the only trustworthy judge is your own task with a few examples.</p>
+
+<h2>What each hardware tier should expect</h2>
+<p>Phrased as ranges for typical current laptops (October 2026), with GPU/CPU shared ("unified") memory in mind:</p>
+<ul>
+  <li><strong>8 GB:</strong> the 3–4B class at 4-bit is comfortable; a 7–8B at 4-bit technically loads but leaves little room for context. Expect quality ceilings quickly — fine for drafting and classification, thin for anything needing careful reasoning.</li>
+  <li><strong>16 GB:</strong> the sweet spot for most people. 7–8B at 4-bit runs with generous context; the 14B class is possible with short contexts and nothing else heavy running. This is the tier where local stops being a toy.</li>
+  <li><strong>32 GB:</strong> 14B at 4-bit comfortably; the 30B class with constrained context. The first tier where long-document work becomes realistic.</li>
+  <li><strong>64 GB:</strong> 30–34B comfortably; even 70B at 4-bit becomes loadable, often via partial offloading (more below), at the cost of speed.</li>
+  <li><strong>128 GB and above (high-end unified-memory machines):</strong> 70B-class models become practical to run fully, which changes what "local" can mean for serious work.</li>
+</ul>
+<p>One hardware aside worth knowing: runtimes split layers between your GPU and CPU. More layers on the GPU means faster tokens; as models outgrow VRAM, layers spill to system memory and speed drops sharply — the model still works, it just stops feeling interactive. This is why a big-RAM machine can run models a smaller dedicated-GPU machine cannot, just slowly. If you are buying hardware specifically for this, the <a href="/post/developer-hardware-guide-2026">developer hardware guide</a> covers the broader decision; the local-LLM-specific addition is memory capacity above all else.</p>
+
+<h2>Picking a runtime</h2>
+<p>You do not build the stack yourself any more; you pick a front-end over an inference engine:</p>
+<ul>
+  <li><strong>llama.cpp-style engines</strong> are the backbone of most local inference, with C/C++ cores and broad hardware backends. The right choice if you live in the terminal and want maximum control over flags, offloading and quantization files.</li>
+  <li><strong>One-command tools (e.g. Ollama)</strong> wrap the engine with model pulling, versioned tags and a local HTTP API — the fastest path to "a local model my scripts can call".</li>
+  <li><strong>Desktop apps with a chat UI (e.g. LM Studio, Jan)</strong> add model browsing, quantization pickers, and settings panels that make the VRAM arithmetic visible instead of implied.</li>
+</ul>
+<p>All three are reasonable; the real variable is which quantized model files you can trust and how they benchmark on <em>your</em> machine for <em>your</em> tasks.</p>
+
+<h2>Tutorial: your first useful local model</h2>
+<p>Prerequisites: a laptop with 16 GB of memory or more (8 GB works with the 3–4B class), a current macOS, Windows or Linux install, a few GB of free disk, and internet for the initial download only.</p>
+<ol>
+  <li><strong>Install a one-command runtime.</strong> Use its official installation method for your OS. This gives you a CLI and a local server on a loopback port.</li>
+  <li><strong>Pick a model of the right size.</strong> Browse the tool's library and choose a 7–8B-class instruct model at 4-bit (for 16 GB machines) or a 3–4B class (for 8 GB). Model names churn month to month; what matters is the class, the instruct variant, and the quantization.</li>
+  <li><strong>Pull it.</strong> One command downloads the quantized file — a few GB for the 8B class.</li>
+  <li><strong>Run it and set expectations.</strong> Start a chat, ask something short, and watch the first tokens. Warm-up (loading weights into memory) happens once per session.</li>
+  <li><strong>Verify it is actually on your GPU.</strong> This is the step people skip. Generation speed is the tell: on a modern laptop GPU, an 8B model at 4-bit should stream at interactive speeds — think many tokens per second — while a crawl of one or two tokens per second almost always means CPU-only execution or layers not offloaded. Most runtimes report timing via a verbose flag or an exit summary; use it.</li>
+  <li><strong>Point your scripts at the local API.</strong> The runtime exposes an OpenAI-style HTTP endpoint on localhost, so code written against hosted APIs works locally with a changed base URL and any dummy key.</li>
+  <li><strong>Run your real task three times.</strong> Summarise one of your own documents; extract fields from one of your own emails. Three runs, because single outputs lie about consistency.</li>
+</ol>
+<p>Security notes, briefly and honestly: the weights come from the internet like everything else — download only from the registry or publisher you trust, and verify checksums when they are published. Local inference keeps your <em>data</em> on your machine, which is the whole privacy argument, but it does not vet the model itself. Also remember that anything you paste into a local model is as safe as your disk is: "local" is a data-flow property, not a sandbox.</p>
+
+<h2>What local models are actually good for</h2>
+<ul>
+  <li><strong>Private document work.</strong> Summarising contracts, notes, medical or legal paperwork — nothing leaves the device, which removes the approval conversation entirely.</li>
+  <li><strong>Offline drafting and rewriting.</strong> Tightening prose, changing tone, translating — tasks where a mid-size model's fluency is more than sufficient and speed on your own machine beats round-trips.</li>
+  <li><strong>Classification and structured extraction at scale.</strong> Labelling tickets, pulling fields out of emails into JSON, deduplicating entries — small-model strengths, and free per-call once the model is local, which makes high-volume batch jobs economical.</li>
+  <li><strong>A second opinion and a privacy filter.</strong> Draft with a local model, escalate the hard parts to a hosted one. Many practical setups are hybrids: the sensitive 80% stays local, the genuinely hard 20% goes to the frontier.</li>
+  <li><strong>Learning and experimentation.</strong> You can inspect, quantize, script and break a local model freely — the fastest way to build intuition for the mechanics in <a href="/post/how-large-language-models-actually-work">how LLMs actually work</a>.</li>
+</ul>
+
+<h2>Where local still loses</h2>
+<ul>
+  <li><strong>Complex multi-step reasoning.</strong> Multi-constraint planning, gnarly debugging chains, long proofs — the gap between an 8B-class model and a hosted frontier model is most visible exactly here.</li>
+  <li><strong>Breadth of world knowledge.</strong> Smaller models know less, forget faster, and hallucinate more readily on niche topics.</li>
+  <li><strong>Heavy multimodal and very long-context work.</strong> Running vision or large-document analysis locally is possible on bigger machines but quickly eats the memory that makes laptops viable.</li>
+  <li><strong>Team-scale serving.</strong> One laptop is one user. Concurrency, uptime and updates turn "local" into an infrastructure project; if your product needs knowledge freshness or per-user permissions, the retrieval-versus-training trade-offs in <a href="/post/rag-vs-fine-tuning-llm">RAG vs fine-tuning</a> still apply — locally hosted models do not escape them.</li>
+</ul>
+
+<h2>Common mistakes and quick fixes</h2>
+<ul>
+  <li><strong>Buying the biggest model that loads instead of the best model that runs well.</strong> A comfortable 8B beats a thrashing 30B every time. Headroom is a feature.</li>
+  <li><strong>Judging from the base checkpoint.</strong> Use instruct/chat variants for assistant tasks; base models continue text rather than follow requests.</li>
+  <li><strong>Ignoring context-length cost.</strong> Long contexts inflate the KV cache and slow generation — trim inputs as you would with a hosted API.</li>
+  <li><strong>Forgetting what else shares memory.</strong> A browser with forty tabs, a Docker daemon and an IDE are all competing with the model. Close things, or watch the OS start swapping.</li>
+  <li><strong>Expecting hosted-API parity on hard tasks.</strong> Evaluate on your own examples before you commit a workflow to a local model; the honest verdict per task is worth more than any leaderboard.</li>
+  <li><strong>Set-and-forget.</strong> Model quality in the open-weight space moves quickly. Revisit your choice when you upgrade hardware — as a working cadence, re-check this whole setup once a year.</li>
+</ul>
+
+<h2>Key takeaways</h2>
+<ul>
+  <li>Memory need ≈ parameters × bytes per weight, plus runtime and KV-cache overhead — that arithmetic decides your model class before anything else.</li>
+  <li>As of October 2026: 8 GB handles 3–4B at 4-bit; 16 GB handles 7–8B comfortably; 32 GB unlocks 14B and stretches to 30B; 70B is a large-memory story.</li>
+  <li>4-bit is the memory-efficient default, 8-bit the conservative one; judge the quality cost with your own task, not with specs.</li>
+  <li>Verify GPU offloading by generation speed before trusting the setup — slow output usually means the layers never reached the GPU.</li>
+  <li>Local wins on privacy, offline use and cheap high-volume extraction; it loses on hard reasoning, world knowledge and team-scale serving.</li>
+  <li>Hybrid is a legitimate architecture: sensitive work local, hard work hosted, per task.</li>
+</ul>
+
+<p>Your next step: install one runtime, pull one 4-bit model that fits with room to spare, and run one genuinely private task you would never paste into a web form. The gap between "it loaded" and "it is useful" is where the real tuning happens — and every figure in this article is checkable against the model card of the specific file you download.</p>

@@ -1,0 +1,174 @@
+<p>Serverless promises zero ops. But every architecture has a bill — and the bill is rarely only money. This is a decision guide for developers and architects facing one honest question: <em>does serverless help this particular service, or does it just move the complexity somewhere I can no longer see it?</em></p>
+
+<p><strong>The direct answer: serverless is a strong default for spiky, event-driven, short-lived and stateless workloads owned by a small team — and a weak one for sustained heavy compute, long-lived connections, costs that must stay predictable at high constant volume, and anything that needs tight control of the runtime.</strong> Everything below explains each half of that sentence and hands you a checklist to apply it to your own service.</p>
+
+<h2>What serverless actually is</h2>
+
+<p>Serverless does not mean "no servers". It means a delivery model: the provider runs the machines, and you deploy units of code — usually functions — that the platform invokes in response to events. You stop provisioning capacity; the provider starts and stops execution environments as work arrives, and meters what actually ran.</p>
+
+<p>Three ideas carry most of the definition:</p>
+
+<ul>
+<li><strong>Event-driven invocation.</strong> Something causes your code to run: an HTTP request, a queue message, a schedule, a file upload, a database change. Nothing runs until something causes it to.</li>
+<li><strong>Scale to zero, and back up.</strong> When events stop, execution environments are reclaimed. An idle service accrues no compute cost, which is exactly why serverless is so attractive for irregular traffic.</li>
+<li><strong>A shift in responsibility, not its removal.</strong> The provider owns the hardware, patching, and the supervisor that boots your code. You still own correctness, configuration, permissions, data shape, latency budget, and the bill.</li>
+</ul>
+
+<p>Most real "serverless" stacks are two layers: a <strong>function layer</strong> (your code, run per event) and a set of <strong>managed companions</strong> — databases, queues, object storage, schedulers, API gateways — consumed per use. The companion layer is where much of the real architecture, and much of the lock-in, lives.</p>
+
+<h2>Where it shines</h2>
+
+<ul>
+<li><strong>Spiky, bursty traffic.</strong> Workloads that peak hard and briefly (webhooks, launch-day APIs, batch uploads) pay for what runs and nothing while idle; an always-on deployment pays full price through the troughs.</li>
+<li><strong>Backends with unpredictable traffic.</strong> You stop guessing capacity — the platform absorbs the surprise for you, in both directions.</li>
+<li><strong>Glue between services.</strong> Event routing, cron-style tasks, fan-out jobs and thin API fronts are a few lines of code with no server to patch, no OS to update, no load balancer to tune.</li>
+<li><strong>Scheduled and background work.</strong> Nightly transforms, cleanup jobs, digest emails and report generation run for seconds at a time — the ideal shape for per-invocation billing.</li>
+<li><strong>Prototypes, internal tools, and staging environments.</strong> A service that scales to zero costs nothing while unused, so you can afford to keep many small things alive.</li>
+<li><strong>Small teams with more product work than ops capacity.</strong> Patching, capacity planning and hardware lifecycle are handled by the platform.</li>
+<li><strong>Per-event isolation.</strong> Each invocation is a fresh, bounded unit: one bad request cannot slowly corrupt a long-running process, and failures are scoped to an event rather than a server.</li>
+<li><strong>Deployment without capacity planning.</strong> You push code; the platform decides how many environments to run.</li>
+</ul>
+
+<h2>Where it fails</h2>
+
+<ul>
+<li><strong>Long-lived connections and streaming.</strong> WebSockets, long polling and live streams fight the invoke-and-return model. You end up paying for keep-alives or bolting on a separate realtime service anyway.</li>
+<li><strong>Sustained heavy compute.</strong> Once CPU runs continuously, per-request pricing can pass the flat cost of an always-on instance. At constant high utilization, measure before assuming serverless is cheaper.</li>
+<li><strong>Endpoints that cannot tolerate a cold start.</strong> Interactive APIs where the first request after an idle period must feel instant are a poor fit unless you reserve warm capacity — which is a return to always-on economics by another name.</li>
+<li><strong>Stateful workloads and data locality.</strong> Databases, caches and file systems live outside the function. Connection pooling, network placement and throughput become your problem again, and every cold environment must re-establish its connections.</li>
+<li><strong>Chatty architectures.</strong> Splitting one user action into many tiny functions multiplies invocations, network hops and latency — fine-grained serverless microservices can cost more and debug worse than one well-structured service.</li>
+<li><strong>Deep runtime control.</strong> Custom kernels, unusual operating-system tuning, special networking, long-running processes and hardware accelerators are outside what a function sandbox offers.</li>
+<li><strong>Provider-shaped complexity.</strong> Queues, triggers and permission policies are provider-specific. Migrating later is a partial rewrite of the glue, not a configuration change.</li>
+</ul>
+
+<h2>The trade-offs at a glance</h2>
+
+<table>
+<thead>
+<tr><th>Dimension</th><th>Serverless</th><th>Always-on container or VM</th></tr>
+</thead>
+<tbody>
+<tr><td>Billing model</td><td>Per invocation plus execution time; managed companions bill per use</td><td>Flat cost for reserved capacity, running whether used or not</td></tr>
+<tr><td>Idle cost</td><td>Near zero — environments are reclaimed</td><td>Full cost while idle</td></tr>
+<tr><td>Cost at sustained load</td><td>Accumulates with usage; a crossover point exists where always-on wins</td><td>Often cheaper per unit of work once utilization is high and steady</td></tr>
+<tr><td>Latency profile</td><td>First request after idle pays a cold-start penalty; warm requests are fast</td><td>Steady after boot — no per-request environment creation</td></tr>
+<tr><td>Operations</td><td>Provider runs and patches the fleet; you debug across managed services</td><td>You patch, tune and scale — with full visibility into every layer</td></tr>
+<tr><td>Runtime control</td><td>Constrained: execution time ceilings, quotas, supported runtimes</td><td>Everything: background processes, networking, OS-level tuning</td></tr>
+<tr><td>Portability</td><td>Triggers, permissions and gateway config are provider-specific</td><td>Mostly standard: containers, processes, SQL, file systems</td></tr>
+<tr><td>Scaling</td><td>Automatic and fast, bounded by platform quotas you do not control</td><td>Yours to plan, pay for, and get wrong in both directions</td></tr>
+</tbody>
+</table>
+
+<p>Read this table as <em>mechanisms</em>, not measurements. Which column wins depends on your traffic shape, team size and how much control you need — and no universal pricing claim survives contact with real workloads.</p>
+
+<h2>What happens on one request</h2>
+
+<p>Each hop in a request's path is where latency, cost and failure can enter. An event arrives at a gateway or trigger, the platform finds or creates an execution environment for your function, your handler runs and calls one or more managed services, and a response returns the way it came.</p>
+
+<figure><img src="/assets/img/diagrams/serverless-request-lifecycle.svg" alt="Diagram: a client request passes through a gateway or event source to a function runtime, which calls a managed service such as a queue, database or object store, and the response returns to the client; a dashed note shows that an idle environment is reclaimed and the next request may pay a cold start"><figcaption>One request through a serverless stack: every arrow is a latency and cost boundary, and the dashed path is where cold starts come from.</figcaption></figure>
+
+<p>Two properties matter here: the function and the managed service are <strong>separate systems over a network</strong> — unlike a function calling a library in-process; and the environment in the middle may have been <strong>created moments ago for this very request</strong>, the subject of the next section.</p>
+
+<h2>Cold starts: where the latency comes from</h2>
+
+<p>A cold start is the work the platform does when it needs an execution environment and none is warm: it allocates the sandbox, fetches your code and dependencies, starts the runtime, runs your initialization — and the request that triggered it all waits.</p>
+
+<ul>
+<li><strong>When it happens:</strong> after an idle period, after a deployment, and during a sudden burst that requires more environments than are already warm.</li>
+<li><strong>What influences it:</strong> the size of your package, how many dependencies it pulls in, runtime startup behaviour, and any network configuration your function must join before the handler can run.</li>
+<li><strong>Who feels it:</strong> typically the first request into an idle service — often the first real user of the day.</li>
+<li><strong>Why it compounds:</strong> if the handler opens connections and warms caches every invocation, a cold environment does that work before any useful work happens.</li>
+</ul>
+
+<p>The usual mitigation levers, in rough order of what they cost you:</p>
+
+<ol>
+<li><strong>Trim the package.</strong> Fewer dependencies and a smaller artifact mean less to load before your code runs.</li>
+<li><strong>Move reusable setup into initialization.</strong> Build clients, connections and caches once per environment and reuse them across invocations, instead of re-doing setup inside every handler.</li>
+<li><strong>Warm traffic deliberately.</strong> A periodic ping keeps environments alive — but you are now paying for idle compute you told yourself you were avoiding, and it papers over the problem rather than solving it.</li>
+<li><strong>Reserve warm capacity.</strong> Most providers offer provisioned or persistent environments: you exchange some scale-to-zero savings for predictable latency.</li>
+<li><strong>Test with production-like dependencies.</strong> A function exercised without its network configuration, SDKs and database setup tells you nothing about the cold start your users will meet.</li>
+</ol>
+
+<h2>How the cost actually works</h2>
+
+<p>No price list belongs in a durable decision guide — prices move, and this article would rot. What does not move is the <em>shape</em> of the billing model — and that shape determines whether serverless is cheap or expensive for you.</p>
+
+<ul>
+<li><strong>Two-part metering.</strong> Functions are typically billed by a small per-invocation charge plus execution time, often scaled by the memory you allocate. More memory costs more per millisecond but can finish sooner — so the fastest configuration is not automatically the priciest, and the cheapest per-millisecond one is not automatically the cheapest overall.</li>
+<li><strong>Companions bill per use too.</strong> Gateways meter API calls, queues meter messages, storage metered by the gigabyte, and data transfer out is charged. These small units behave like rent: invisible at prototype volume, structural at scale.</li>
+<li><strong>Idle is free, busy is linear.</strong> The model rewards irregular workloads and punishes constant ones. Your job is to figure out which of those you have.</li>
+<li><strong>Retries multiply the meter.</strong> Event sources usually deliver at least once, so duplicate invocations are normal — each one bills, and each one must be safe to run twice.</li>
+<li><strong>Observability has a meter as well.</strong> Traces and logs shipped to managed monitoring services are themselves per-event products; rich instrumentation on a high-volume function is a real line item.</li>
+<li><strong>Portability is a cost too.</strong> Not on this month's invoice, but it appears when you try to leave: engineer time spent unwinding provider-specific glue.</li>
+</ul>
+
+<p>Practical move: build a tiny model in a spreadsheet with <em>your</em> numbers — invocations per day, a rough execution-time distribution, the companion services each request touches, data transfer — and compare it against an always-on deployment at your realistic utilization. No numbers means you are choosing on vibes, not evidence.</p>
+
+<h2>Three scenarios, decided</h2>
+
+<p>All three scenarios below are <strong>invented illustrations of the decision logic</strong> — not case studies, not measurements, not real companies.</p>
+
+<h3>Scenario A — webhook receiver for a payment provider</h3>
+<ul>
+<li><strong>Shape:</strong> bursts of short POST requests, stateless processing, no long-lived connections, near-zero traffic between bursts.</li>
+<li><strong>Verdict:</strong> serverless is close to ideal. Scale-to-zero covers the troughs, each event is handled in isolation, and there is no fleet to patch for something that runs seconds at a time.</li>
+<li><strong>Watch-outs:</strong> event sources retry, so your handler must be idempotent; and the payload still needs signature validation before you trust it.</li>
+</ul>
+
+<h3>Scenario B — realtime collaboration sync engine</h3>
+<ul>
+<li><strong>Shape:</strong> persistent WebSocket sessions, rooms of connected editors, sub-second fan-out, sessions alive for hours.</li>
+<li><strong>Verdict:</strong> serverless fights you at every step. You would pay to keep connections alive, fight the execution-time ceiling, and split shared in-memory state across environments the platform can reclaim at will.</li>
+<li><strong>Watch-out:</strong> bolting a "realtime" managed service onto the side solves the connection problem but concedes this workload never belonged in functions.</li>
+</ul>
+
+<h3>Scenario C — image-tagging API with steady all-day traffic</h3>
+<ul>
+<li><strong>Shape:</strong> constant, predictable volume, each request doing meaningful compute for a sustained period.</li>
+<li><strong>Verdict:</strong> undecided until you model it. Idle discounts do not help a service that is never idle, so the per-request meter runs continuously; compare against always-on capacity — or against running inference on hardware you own, the rent-versus-own trade-off we walk through in <a href="/post/local-llms-laptop-guide">running models on your own hardware</a>.</li>
+<li><strong>Watch-outs:</strong> model companion services and data transfer too — "steady" traffic is exactly the pattern an always-on deployment is best at.</li>
+</ul>
+
+<h2>A migration checklist you can run</h2>
+
+<ol>
+<li><strong>Map the traffic shape.</strong> Bursty or constant? Idle overnight? Pull real numbers; if you must estimate, label the estimate as one.</li>
+<li><strong>Classify the work.</strong> Stateless, seconds-long, event-triggered — or stateful, long-running, connection-heavy? The second column mostly disqualifies itself.</li>
+<li><strong>Inventory state and data locality.</strong> Databases, caches, file-system assumptions, and who owns connection pooling once environments come and go. Stateful services still need their own performance work — start with <a href="/post/sql-indexing-practical-guide">a practical guide to SQL indexing</a>.</li>
+<li><strong>Model cost at your real traffic</strong> for both options — gateway calls, queue messages, storage, transfer, monitoring. A demo-tier calculator is not analysis.</li>
+<li><strong>Prototype with production-like dependencies</strong> — network configuration, SDKs, real database endpoints — and observe what first requests experience before you commit.</li>
+<li><strong>Define idempotency and retry semantics.</strong> Decide what a duplicate delivery does to your data, and make the answer "nothing" wherever possible.</li>
+<li><strong>Set timeouts, quotas and concurrency expectations.</strong> Platform quotas become the new capacity limits you report to the business.</li>
+<li><strong>Wire observability before launch.</strong> Traces across gateway → function → managed services, correlation IDs in logs, alerts per function. Serverless hides the machine; telemetry is your only window.</li>
+<li><strong>Draw your portability line.</strong> Decide which provider-specific glue you accept and which parts stay portable — and write it down, so the decision survives staff changes.</li>
+<li><strong>Move one path first.</strong> Migrate a single event flow end to end, keep the old path until the new one is demonstrably at parity, and know your rollback before you need it.</li>
+</ol>
+
+<h2>Common mistakes and honest limitations</h2>
+
+<ul>
+<li><strong>Wrapping a monolith in a function.</strong> Moving the same tightly coupled code into a function changes the billing meter, not the architecture.</li>
+<li><strong>Splitting too finely.</strong> One function per step turns a user action into a distributed transaction with a bill attached to every hop.</li>
+<li><strong>Assuming serverless is cheaper.</strong> It runs on a different meter — sometimes dramatically in your favour, sometimes not.</li>
+<li><strong>Testing in a console with no dependencies.</strong> The demo handler is not your handler: no network configuration, no database, no SDK initialization.</li>
+<li><strong>Skipping observability.</strong> Distributed flows across managed services are impossible to debug from log statements alone.</li>
+<li><strong>Treating provider glue as portable.</strong> It is not, and pretending otherwise just delays the reckoning.</li>
+<li><strong>Ignoring the local development story.</strong> Emulators and local runtimes approximate the cloud; the gap is where many teams lose hours.</li>
+</ul>
+
+<p>And the limitations no checklist removes: execution ceilings mean functions are the wrong shape for hour-long jobs (use a batch or job service); quotas are set by someone else; debugging crosses more systems than a monolith did; and the products you depend on evolve on the provider's schedule, not yours. As of October 2026, providers keep adding limits and regional variations — treat any specific number as needing a fresh check against current docs.</p>
+
+<h2>Key takeaways</h2>
+
+<ul>
+<li>Serverless is a metering and operations model, not a magic elimination of infrastructure — someone runs the machines; you run the code and the bill.</li>
+<li>It shines on spiky, event-driven, short-lived, stateless work — the shape where scale-to-zero and per-event billing work for you.</li>
+<li>It fails on sustained compute, long-lived connections, tight state, and workloads needing deep runtime control.</li>
+<li>Cold starts are a real, mitigable cost: trim packages, initialize once per environment, reserve warm capacity if latency demands it.</li>
+<li>Cost is a mechanism problem — invocations, duration, companions, retries, transfer — not a pricing-page problem. Model it with your own traffic.</li>
+<li>Migration is a checklist, not a leap: traffic shape → state inventory → cost model → production-like prototype → observability → one path first.</li>
+<li>Lock-in is a legitimate, explicit trade — accept it on purpose rather than discovering it during an exit.</li>
+</ul>
+
+<p>Your next step: pick one candidate service and run it through the ten-item checklist, writing down the two answers you are least sure about — those are the ones to prototype. Give the prototype a couple of weeks of representative traffic and compare its meter against an always-on deployment at your real utilization. If you keep it, make observability the next investment: serverless takes the machine away from you, and alerts, traces and correlation IDs are how you get it back.</p>

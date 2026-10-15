@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" role="img" aria-labelledby="title desc">
+  <title id="title">The three-pass paper reading loop</title>
+  <desc id="desc">Three rounded boxes form a loop: pass 1 scans for overview, pass 2 reads claims and evidence, pass 3 reproduces and verifies, with an exit arrow after pass 1 for papers that are not relevant.</desc>
+
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1f4fd8"/>
+    </marker>
+    <marker id="arrowExit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#e8402a"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="450" y="46" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="24" font-weight="700" fill="#14161c">The three-pass reading loop</text>
+  <text x="450" y="74" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Each pass has one goal and one artifact — most papers exit after pass 1</text>
+
+  <!-- Pass 1 -->
+  <rect x="70" y="150" width="230" height="120" rx="16" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="185" y="184" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f4fd8">Pass 1 · ~5 min</text>
+  <text x="185" y="212" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Scan for overview</text>
+  <text x="185" y="236" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">artifact: 3-line summary</text>
+  <text x="185" y="256" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">+ keep / park / discard</text>
+
+  <!-- Pass 2 -->
+  <rect x="570" y="150" width="250" height="120" rx="16" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="695" y="184" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f4fd8">Pass 2 · ~1 hour</text>
+  <text x="695" y="212" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Claims vs. evidence</text>
+  <text x="695" y="236" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">artifact: claim list,</text>
+  <text x="695" y="256" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">method notes, verdict</text>
+
+  <!-- Pass 3 -->
+  <rect x="320" y="360" width="260" height="120" rx="16" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="450" y="394" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f4fd8">Pass 3 · only if needed</text>
+  <text x="450" y="422" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Re-derive · check · reproduce</text>
+  <text x="450" y="446" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">artifact: verified result,</text>
+  <text x="450" y="466" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">checked assumptions</text>
+
+  <!-- Loop arrows -->
+  <path d="M304 196 L560 196" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="432" y="184" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#1f4fd8">relevant? → commit an hour</text>
+
+  <path d="M690 274 Q690 340 590 410" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="700" y="330" text-anchor="start" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#1f4fd8">will build on it?</text>
+
+  <path d="M316 420 Q200 400 178 280" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="148" y="368" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#1f4fd8">new questions →</text>
+  <text x="148" y="388" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#1f4fd8">reread with purpose</text>
+
+  <!-- Exit path -->
+  <path d="M70 210 L24 210 L24 120 L450 120" fill="none" stroke="#e8402a" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#arrowExit)"/>
+  <text x="452" y="108" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#e8402a" font-weight="700">not relevant? stop after pass 1 — that is the method working</text>
+
+  <text x="450" y="510" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Depth is a budget: only papers that survive each gate earn the next pass</text>
+</svg>

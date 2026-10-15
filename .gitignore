@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------------
+#  Runtime / session junk (never commit)
+# ---------------------------------------------------------------------
+cookies.txt
+tmp_*.html
+*.log
+
+# ---------------------------------------------------------------------
+#  Backups (external editors drop these next to sources)
+# ---------------------------------------------------------------------
+*.bak
+
+# ---------------------------------------------------------------------
+#  Build tooling — tools/tailwindcss.exe is a ~107 MB binary that
+#  exceeds GitHub's 100 MB file limit. Keep it on disk for local CSS
+#  builds; it is not part of the deployable site.
+# ---------------------------------------------------------------------
+tools/tailwindcss.exe
+
+# ---------------------------------------------------------------------
+#  OS / editor noise
+# ---------------------------------------------------------------------
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

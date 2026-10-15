@@ -1,0 +1,27 @@
+Topic photo credits
+===================
+Photos sourced from Openverse (commercial-use / CC licensed) for card covers.
+
+cloud-computing-1.jpg  "Free computer server room image" — rawpixel — CC0 (public domain)
+                       https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9zdGF0aWMvaW1hZ2Uvd2Vic2l0ZS8yMDIyLTA0L2xyL3B4MTI0MTMyNS1pbWFnZS1rd3Z3NGFoMC5qcGc.jpg
+
+cloud-computing-2.jpg  "Data Center Network Core" — motleypixel — CC BY 2.0
+                       https://live.staticflickr.com/6045/6239564720_7a282a86fa_b.jpg
+
+generative-ai-1.jpg    "Dark Future" — pasukaru76 — CC0 (public domain)
+                       https://live.staticflickr.com/3040/5870334813_cf878019ac_b.jpg
+
+generative-ai-2.jpg    "Applied Minds" — Steve Jurvetson — CC BY 2.0
+                       https://live.staticflickr.com/7343/8982360883_17167444b6_b.jpg
+
+data-analysis-1.jpg    "Stacked Bar Chart & Mini Months" — Lauren Manning — CC BY 2.0
+                       https://live.staticflickr.com/5105/5659594100_41d0e2fde8_b.jpg
+
+data-analysis-2.jpg    "Real-time bus tracking control room in Lebanon" — UrusHyby — CC0 (public domain)
+                       https://upload.wikimedia.org/wikipedia/commons/0/0d/Real-time_bus_tracking_control_room_in_Lebanon.jpg
+
+javascript-1.jpg       "Fall 2011 Student Hackathon Coding" — hackNY — CC BY-SA 2.0
+                       https://live.staticflickr.com/6121/6202775045_0d435b4279_b.jpg
+
+Pre-existing photos (artificial-intelligence, data-science, freelancing, productivity,
+programming, research, student-career, technology — N.jpg) were already part of the site.

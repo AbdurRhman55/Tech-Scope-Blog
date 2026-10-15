@@ -1,0 +1,189 @@
+<p>Git does not get harder with a bigger team — long-lived branches do. The fix is shortening how long work stays unmerged, and choosing the branching model that makes short branches the path of least resistance.</p>
+<p><strong>The direct answer:</strong> for most product teams, <strong>trunk-based development</strong> is the default that scales — small commits and pull requests into <code>main</code>, feature flags for unfinished work, branches that live hours rather than weeks, and releases tagged from CI. Reach for <strong>git-flow</strong> — <code>develop</code>, <code>release/*</code> and <code>hotfix/*</code> branches — only when you ship versioned software on a schedule and must patch several versions in the field at once. The comparison table below shows the criteria; the sections after it show the commands and the migration path.</p>
+
+<h2>The real variable is branch lifetime</h2>
+<p>Team size is a distraction. A team of twenty with branches that live half a day merges more easily than a team of three with branches that live three weeks, because merge pain grows with the amount of divergent history between two integration points — and divergence grows with time, not headcount.</p>
+
+<ul>
+<li>Every hour your branch is open, <code>main</code> moves: teammates merge, the schema changes, a shared function changes signature.</li>
+<li>Conflicts are not caused by Git; they are caused by two people editing the same region before either integrates. Time open is the exposure window.</li>
+<li>Long branches also hide broken builds, failed integration and half-finished design — you discover them on the day you planned to ship.</li>
+<li>Short branches make reviews small, and small reviews catch problems while the author still remembers the context.</li>
+<li>Feature flags decouple <em>deployment</em> from <em>release</em>: code can be merged safely before the feature is ready.</li>
+</ul>
+
+<figure><img src="/assets/img/diagrams/git-workflows-branch-lifetime.svg" alt="Comparison diagram: in the trunk-based panel, short feature branches open and merge back into main within hours; in the git-flow panel, feature branches span days to weeks, a release branch runs between develop and main, and a hotfix branch drops onto main"><figcaption>Same repository, two exposure windows: branch lifetime — not team size — decides how much history can diverge before you integrate.</figcaption></figure>
+
+<h2>The two models, defined</h2>
+<h3>Trunk-based development</h3>
+<p>Everyone integrates into a single long-lived branch (<code>main</code>) continuously. Work happens either directly as small commits or on branches that are merged within a day or so. Incomplete work is hidden behind feature flags rather than behind branch age.</p>
+<ul>
+<li><strong>Branch lifetime:</strong> hours to about a day — never "until the feature is done".</li>
+<li><strong>Integration:</strong> continuous; every merge is expected to keep <code>main</code> releasable.</li>
+<li><strong>Releases:</strong> cut from <code>main</code>, ideally by CI on a tag or on merge.</li>
+<li><strong>Requirement:</strong> automated tests and CI on every change, plus tolerance for flags.</li>
+</ul>
+
+<h3>Git-flow</h3>
+<p>A structured model with five branch types: <code>main</code> (production), <code>develop</code> (integration for the next version), <code>feature/*</code>, <code>release/*</code> (stabilize an upcoming version) and <code>hotfix/*</code> (urgent production fixes).</p>
+<ul>
+<li><strong>Branch lifetime:</strong> features live days to weeks; a release branch lives until ship day.</li>
+<li><strong>Integration:</strong> batched at release boundaries; <code>develop</code> accumulates completed features.</li>
+<li><strong>Releases:</strong> a named <code>release/x.y</code> branch is frozen, stabilized, then merged to <code>main</code> and tagged.</li>
+<li><strong>Requirement:</strong> discipline about merging release branches back into <code>develop</code> so fixes are not lost.</li>
+</ul>
+
+<h2>Trunk-based vs git-flow on the criteria</h2>
+<table>
+<thead>
+<tr><th>Criterion</th><th>Trunk-based</th><th>Git-flow</th></tr>
+</thead>
+<tbody>
+<tr><td>Typical feature branch lifetime</td><td>Hours to about one day</td><td>Days to weeks</td></tr>
+<tr><td>Integration point</td><td>Continuous, into <code>main</code></td><td>Batched, into <code>develop</code> then release branches</td></tr>
+<tr><td>Where releases come from</td><td><code>main</code>, tagged by CI</td><td>Frozen <code>release/*</code> branch, merged to <code>main</code></td></tr>
+<tr><td>Incomplete work</td><td>Hidden behind feature flags</td><td>Hidden inside unmerged branches</td></tr>
+<tr><td>Review burden per merge</td><td>Small diffs, frequent</td><td>Larger diffs, less frequent</td></tr>
+<tr><td>Parallel versions in the field</td><td>Awkward — one line of development</td><td>Native — <code>hotfix/*</code> per supported version</td></tr>
+<tr><td>Tooling demands</td><td>CI on every push, flag system, good test suite</td><td>Branch naming conventions, release checklist</td></tr>
+<tr><td>Best fit</td><td>Web services, SaaS, anything deployed continuously</td><td>Versioned products: mobile releases, packaged desktop software, scheduled editions</td></tr>
+<tr><td>Characteristic failure</td><td>Flags accumulate and are never cleaned up</td><td>Release branches rot; fixes land in one place and are forgotten in another</td></tr>
+</tbody>
+</table>
+
+<p>Read the table as trade-offs, not ranking. Git-flow is not "old-fashioned" — it encodes a real requirement (several versions supported simultaneously) that trunk-based handles badly. Trunk-based is not "careless" — it demands automation that git-flow lets you postpone.</p>
+
+<h2>Trunk-based in practice: the commands</h2>
+<p>A day of trunk-based work, through one concrete example: adding a cohort filter to a retention view.</p>
+
+<pre><code># start from a fresh main
+git switch main
+git pull --ff-only
+
+# short-lived branch
+git switch -c feat/cohort-filter
+
+# ... edit, then commit tracked files you changed ...
+git commit -am "feat: add cohort filter to retention view"
+
+# pick up teammates' work before you push
+git fetch origin
+git rebase origin/main
+
+git push -u origin feat/cohort-filter
+# open a small pull request; merge after review and green CI</code></pre>
+
+<ul>
+<li><code>git commit -am</code> stages <em>tracked, modified</em> files only. New files still need <code>git add</code> — this is the classic way a file goes missing from a commit.</li>
+<li>Rebase your own branch onto <code>main</code> before review so the diff reviewers read is exactly your change.</li>
+<li>If the branch has already been reviewed and others have commented, prefer merging over rebasing — rebasing rewrites commits that reviewers may be pinned to.</li>
+<li>Keep the branch under a day: if the work is bigger, merge a minimal slice and hide it with a flag.</li>
+<li>Optional cleanup before review: <code>git rebase -i HEAD~3</code> to squash fixups into a coherent history — only on commits nobody else has pulled.</li>
+</ul>
+
+<h2>Git-flow in practice: the commands</h2>
+<p>The same work under git-flow, including the release and hotfix paths that exist to serve versioned products:</p>
+
+<pre><code># feature work integrates into develop, not main
+git switch develop
+git pull --ff-only
+git switch -c feature/invoice-export
+# ... commits ...
+git pull --rebase origin develop
+git push -u origin feature/invoice-export
+# then: merge with --no-ff so the feature stays visible in history
+git switch develop
+git merge --no-ff feature/invoice-export
+git branch -d feature/invoice-export
+
+# cut a release: scope is frozen, only fixes are accepted
+git switch -c release/1.4 develop
+# ... version bump, release notes, fixes only ...
+git switch main
+git merge --no-ff release/1.4
+git tag -a v1.4.0 -m "v1.4.0"
+git switch develop
+git merge --no-ff release/1.4
+git branch -d release/1.4
+
+# urgent production fix against the version in the field
+git switch -c hotfix/1.4.1 main
+# ... fix ...
+# merge back to main (tag v1.4.1) AND to develop, or the fix reappears</code></pre>
+
+<ul>
+<li><strong>The merge-back rule is the whole model.</strong> Every <code>release/*</code> and <code>hotfix/*</code> branch merges into both <code>main</code> and <code>develop</code>; skip that and the next release silently loses the fix.</li>
+<li>Use <code>--no-ff</code> on integration merges so feature and release boundaries remain visible in the log.</li>
+<li>If your team never patches an older version, the <code>develop</code> and <code>release/*</code> branches are ceremony — you are paying git-flow's overhead without using its one real benefit.</li>
+<li>The <code>git flow</code> command-line helper automates these steps, but plain Git commands show exactly what the model does.</li>
+</ul>
+
+<p>For the mechanics of day-to-day Git itself — remotes, recovery, inspection — the <a href="https://git-scm.com/doc" rel="external noopener">official Git documentation</a> is the reference this article assumes.</p>
+
+<h2>How to decide: fit statements</h2>
+<p>Choose <strong>trunk-based</strong> if:</p>
+<ul>
+<li>Your team deploys to production routinely — several times a week or more — and can roll back.</li>
+<li>CI runs tests on every push and a green <code>main</code> is a team norm.</li>
+<li>You are happy to ship disabled code behind flags and delete the flag when the feature lands.</li>
+<li>There is exactly one version in production at any moment.</li>
+<li>You want onboarding to be "here is how we merge", not "here is a diagram of five branch types".</li>
+</ul>
+
+<p>Choose <strong>git-flow</strong> if:</p>
+<ul>
+<li>You release versioned artifacts on a cadence — app-store approval cycles, dated product editions, packaged installs.</li>
+<li>Customers run older versions in the field and you must ship fixes to more than one of them.</li>
+<li>QA, legal or marketing gates a release, so a freeze period with a stabilizing branch is genuinely useful.</li>
+<li>Releases are events that need a named branch, notes and a tag — not just "whatever is on main today".</li>
+</ul>
+
+<p>Many teams land in a hybrid: trunk-based development with a release branch cut from <code>main</code> for a few days when a release needs stabilization. That keeps branch lifetime short without pretending every merge is shippable.</p>
+
+<h2>Rules that prevent pain</h2>
+<ol>
+<li><strong>Rebase your own branch freely; never rewrite shared history.</strong> Anything another developer may have pulled (<code>main</code>, <code>develop</code>, a reviewed branch) gets <code>git revert</code>, not a force-push.</li>
+<li><strong>Force-push only with a lease, only on your own branch:</strong> <code>git push --force-with-lease</code> refuses to overwrite commits you have not seen — plain <code>--force</code> can destroy a teammate's work.</li>
+<li><strong>Protect <code>main</code> in the forge.</strong> No direct pushes; every change arrives through a reviewed pull request with green CI.</li>
+<li><strong>Require pull-request reviews but keep them small.</strong> A diff someone can read in a few minutes gets real attention; a 2,000-line diff gets a thumbs-up.</li>
+<li><strong>Tag releases from CI — never from a laptop.</strong> A laptop tag is unreproducible, unreviewed, and depends on a working copy nobody else can see.</li>
+<li><strong>Merge or discard stale branches on a schedule.</strong> A branch older than your team's stated lifetime target is a decision waiting to be made, not a background object.</li>
+<li><strong>Never merge with failing CI.</strong> One red merge teaches everyone that red is normal.</li>
+<li><strong>Resolve conflicts by understanding both sides.</strong> Taking "theirs" wholesale to make the merge go through is how a teammate's change quietly disappears.</li>
+</ol>
+
+<p>Small reviews are also where static checks earn their keep: a reviewer should be reading logic, not hunting for a possibly-undefined value. The <a href="/post/typescript-tips-hard-way">TypeScript pitfalls that bite newcomers</a> show what the compiler can catch before a human has to.</p>
+
+<h2>Common mistakes at scale</h2>
+<ul>
+<li><strong>The three-week branch.</strong> It starts as "just this one big thing". Split the work into mergeable slices and flags instead.</li>
+<li><strong>Giant pull requests.</strong> If reviewers cannot hold the change in their head, defects and design problems both slip through.</li>
+<li><strong>Rebasing published history.</strong> Rewriting a branch a reviewer has commented on invalidates their review and can orphan their comments.</li>
+<li><strong>Flags that never die.</strong> A flag system without a deletion habit becomes a second configuration system nobody understands. Give every flag an owner and a removal condition.</li>
+<li><strong>Release-branch drift.</strong> Hotfixes patched into <code>main</code> but never merged back to <code>develop</code> resurface in the next release — the classic git-flow failure.</li>
+<li><strong>Manual, tribal release steps.</strong> If releasing requires one person's shell history, you do not have a workflow, you have a dependency on an individual.</li>
+<li><strong>Fighting about rebase vs merge</strong> instead of agreeing on the branch lifetime. The lifecycle decision matters more than the plumbing.</li>
+</ul>
+
+<h2>Moving an existing team, step by step</h2>
+<ol>
+<li><strong>Write down your current model honestly</strong> — including the exceptions everyone knows about but nobody documented.</li>
+<li><strong>Protect <code>main</code> and require CI plus one review.</strong> This is the change with the highest ratio of pain removed to effort spent.</li>
+<li><strong>Set a branch-lifetime target as a team</strong> (for example, a day or two for product work) and make visible branch age part of your stand-up or board.</li>
+<li><strong>Split the next large piece of work</strong> into a mergeable first slice plus a flag, and run it as the template.</li>
+<li><strong>Automate tagging and release notes in CI</strong> so shipping stops depending on anyone's laptop.</li>
+<li><strong>Retire branches you do not need.</strong> Drop <code>develop</code> if you only ever ship one version; add <code>release/*</code> only if you patch versions in the field.</li>
+<li><strong>Review after a month:</strong> are merges smaller, are conflicts rarer, is releasing boring? Adjust the target, not the philosophy.</li>
+</ol>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>Git scales fine; unmerged time does not. Shorten branch lifetime before adopting more process.</li>
+<li>Trunk-based suits continuously deployed products; git-flow suits versioned releases with parallel support. The criteria table is the decision.</li>
+<li>Trunk-based requires CI and feature flags; git-flow requires merge-back discipline. Both fail when their one requirement is skipped.</li>
+<li>Rebase your own work, never shared history; protect <code>main</code>; force-push only with <code>--force-with-lease</code>.</li>
+<li>Small pull requests and CI-tagged releases are the two habits that remove most release-day risk.</li>
+<li>Hybrid is legitimate: trunk-based day to day, a short stabilization branch when a release needs one.</li>
+</ul>
+
+<p>When integration is continuous, releases become boring. Boring is the goal. Start this week with one concrete change: protect <code>main</code>, require green CI plus a single small review, and measure how long your average branch stays open. Pair the workflow with the code habits in <a href="/post/clean-code-php-patterns">clean code patterns for PHP</a> — small, single-purpose changes are exactly what short branches and fast reviews depend on.</p>

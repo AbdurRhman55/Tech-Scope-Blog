@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" font-family="Manrope, Arial, sans-serif" role="img" aria-label="Two-row flow diagram: registration sends a challenge from the app to the device authenticator, which creates a key pair and returns the public key for storage; authentication sends a fresh challenge, the device signs it after local verification, and the app verifies the signature and opens a session">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f4fd8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="48" y="46" font-size="21" font-weight="bold" fill="#14161c">Passkeys: registration and authentication</text>
+
+  <!-- ===== Registration ===== -->
+  <text x="48" y="96" font-size="17" font-weight="bold" fill="#1f4fd8">1 · Registration</text>
+
+  <rect x="60" y="116" width="240" height="60" rx="15" fill="#ffffff" stroke="#14161c" stroke-width="2.5"/>
+  <text x="76" y="141" font-size="16" font-weight="bold" fill="#14161c">Your app</text>
+  <text x="76" y="165" font-size="15" fill="#5a6070">issues a random challenge</text>
+
+  <rect x="330" y="116" width="240" height="60" rx="15" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="346" y="141" font-size="16" font-weight="bold" fill="#14161c">Device authenticator</text>
+  <text x="346" y="165" font-size="15" fill="#5a6070">verifies you, creates key pair</text>
+
+  <rect x="600" y="116" width="240" height="60" rx="15" fill="#ffffff" stroke="#14161c" stroke-width="2.5"/>
+  <text x="616" y="141" font-size="16" font-weight="bold" fill="#14161c">Your app</text>
+  <text x="616" y="165" font-size="15" fill="#5a6070">stores the public key</text>
+
+  <line x1="300" y1="146" x2="326" y2="146" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="570" y1="146" x2="596" y2="146" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- ===== Authentication ===== -->
+  <text x="48" y="236" font-size="17" font-weight="bold" fill="#1f4fd8">2 · Authentication</text>
+
+  <rect x="60" y="256" width="240" height="60" rx="15" fill="#ffffff" stroke="#14161c" stroke-width="2.5"/>
+  <text x="76" y="281" font-size="16" font-weight="bold" fill="#14161c">Your app</text>
+  <text x="76" y="305" font-size="15" fill="#5a6070">issues a fresh challenge</text>
+
+  <rect x="330" y="256" width="240" height="60" rx="15" fill="#ffffff" stroke="#1f4fd8" stroke-width="2.5"/>
+  <text x="346" y="281" font-size="16" font-weight="bold" fill="#14161c">Device authenticator</text>
+  <text x="346" y="305" font-size="15" fill="#5a6070">verifies you, signs it</text>
+
+  <rect x="600" y="256" width="240" height="60" rx="15" fill="#ffffff" stroke="#14161c" stroke-width="2.5"/>
+  <text x="616" y="281" font-size="16" font-weight="bold" fill="#14161c">Your app</text>
+  <text x="616" y="305" font-size="15" fill="#5a6070">verifies, opens session</text>
+
+  <line x1="300" y1="286" x2="326" y2="286" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="570" y1="286" x2="596" y2="286" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <line x1="48" y1="352" x2="852" y2="352" stroke="#5a6070" stroke-width="1" stroke-dasharray="6 6"/>
+
+  <text x="48" y="388" font-size="16" fill="#14161c">The private key never leaves the device; the server keeps only the public key.</text>
+  <text x="48" y="418" font-size="16" fill="#e8402a">The authenticator signs only for the domain the passkey was created for.</text>
+  <text x="48" y="448" font-size="15" fill="#5a6070">Cross-device sign-in uses a QR handoff; platform sync is what makes a lost device survivable.</text>
+  <text x="48" y="478" font-size="15" fill="#5a6070">After verification the session behaves exactly like any other login: cookies, expiry, CSRF.</text>
+</svg>

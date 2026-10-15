@@ -1,0 +1,128 @@
+<p>Large language models look like magic until you break them down. At its core, an LLM is a very large function that predicts the next token given everything before it — and once you can trace that single prediction end to end, the rest of the field stops being mysterious. This guide walks the full pipeline: text becomes tokens, tokens become vectors, attention mixes information between positions, and a probability distribution picks the next token. You get a worked example at each stage, a plain-language look at how models are evaluated, and an honest list of where the picture breaks down.</p>
+
+<h2>The short answer</h2>
+<p>A model reads your text as a list of token IDs, turns each token into a vector, passes those vectors through many layers of attention and feed-forward computation that continuously mix information between positions, and finally produces a raw score for every token in its vocabulary. One token is selected — sampled, really — appended to the input, and the whole loop runs again. Nothing is looked up in a facts database and nothing is "remembered" the way a human remembers. Knowledge is smeared across billions of numeric parameters, and the quality of the output is a function of both those parameters and the context you supply.</p>
+<p>Three consequences follow immediately, and they explain almost every practical tip you have ever read about prompting:</p>
+<ul>
+  <li><strong>The model predicts tokens, not truths.</strong> It optimizes for plausible continuations, which is why confident nonsense is possible.</li>
+  <li><strong>Every generation step is a fresh computation over the full context.</strong> There is no separate reasoning engine running in the background.</li>
+  <li><strong>Context is the steering wheel.</strong> Parameters are fixed at deployment time; the context window is the only thing you change at inference time.</li>
+</ul>
+
+<h2>Stage 1: Tokenization</h2>
+<p>Models do not read characters or words — they read integers. A tokenizer is a separate, frozen piece of software that splits your text into <em>subword tokens</em> and maps each one to an integer ID from a fixed vocabulary. Most modern tokenizers are trained with merges-based schemes (byte-pair encoding and its relatives): common words stay whole, rare words get split into familiar fragments.</p>
+<p>A small, illustrative pass over one sentence:</p>
+<pre><code>Input:  "Local models run offline."
+Tokens: ["Local", " models", " run", " offline", "."]
+IDs:    [ 1542,    4271,   1466,   11403,     13 ]   (illustrative IDs)</code></pre>
+<p>Those IDs are opaque indexes — the digit 1542 carries no meaning by itself. Meaning appears only after the model has converted it into a vector. A few tokenization facts that matter in practice:</p>
+<ul>
+  <li><strong>Vocabulary size is a design choice.</strong> Larger vocabularies compress text into fewer tokens but make the output layer (one score per token) more expensive.</li>
+  <li><strong>Whitespace and punctuation are part of tokens.</strong> That is why a leading space can change how a word is tokenized, and why copying text between models sometimes behaves oddly.</li>
+  <li><strong>Not everything compresses equally.</strong> Numbers, code, emoji and low-resource languages often split into more tokens than common English prose, so the same document can cost different amounts in different models.</li>
+  <li><strong>Token limits are tokenizer-specific.</strong> The context window is measured in that model's tokens, not in words or characters — 100,000 words is not a fixed token count across models.</li>
+</ul>
+<p>When a task looks mysteriously worse in one model than another, check tokenization first: split the input with the model's own tokenizer and look at what the model actually receives.</p>
+
+<h2>Stage 2: Embeddings</h2>
+<p>Each token ID indexes a row in an embedding table — a learned vector with hundreds or thousands of dimensions (the exact figure is a property of the model; its model card or configuration file states it). During training, that row is nudged until tokens that appear in similar contexts end up near each other. This is the sense in which "similar concepts cluster together in vector space": proximity is learned from co-occurrence, not assigned by a dictionary.</p>
+<p>Embeddings do three jobs at once:</p>
+<ul>
+  <li><strong>They carry meaning.</strong> Vectors that are close in direction tend to be interchangeable in context — a crude but useful test is cosine similarity between two token or sentence vectors.</li>
+  <li><strong>They carry position.</strong> Because attention mixes tokens without respecting order on its own, position information (from an added position signal, and in newer architectures from the order tokens are processed in) is folded into the representation so "dog bites man" and "man bites dog" are not the same input.</li>
+  <li><strong>They are the interface to everything downstream.</strong> The transformer never sees text again — only vectors.</li>
+</ul>
+<p>The important limitation: a token's embedding is <em>static</em>. The word "bank" has one embedding whether it appears in a river sentence or a finance sentence. Resolving that ambiguity is the job of the next stage.</p>
+
+<h2>Stage 3: Attention, step by step</h2>
+<p>Attention is the mechanism that lets every position in the sequence recompute its own representation as a weighted blend of <em>other</em> positions. For each token the layer produces three vectors from its current representation:</p>
+<ul>
+  <li><strong>Query (Q)</strong> — "what am I looking for?"</li>
+  <li><strong>Key (K)</strong> — "what do I advertise that I contain?"</li>
+  <li><strong>Value (V)</strong> — "what will I actually pass on if someone selects me?"</li>
+</ul>
+<p>Each query is compared against every key to produce a compatibility score. Those scores are turned into weights that sum to one, and the output for that position is the weighted sum of the values. In one line: <em>for each token, blend in what is relevant, in proportion to how relevant it is.</em></p>
+<h3>A worked micro-example</h3>
+<p>Take the sentence "The server returned the file because <strong>it</strong> was cached." When the model processes the token "it", its query matches the keys of "server" and "file" and "cached" to different degrees. If the surrounding context is about performance, the attention weights land mostly on "cached" — and the representation of "it" becomes dominated by that word's value vector. The disambiguation happens per layer, per position, and the static embedding problem from Stage 2 is solved here, because the representation of "it" is now built from its context rather than from its dictionary entry.</p>
+<p>Four structural points worth internalizing:</p>
+<ul>
+  <li><strong>Every token attends to every other token</strong> (causal language models only attend backward, so generation stays honest — the model cannot peek at tokens it has not produced yet).</li>
+  <li><strong>Multiple heads run in parallel.</strong> Each head has its own Q/K/V projections; in practice different heads tend to specialize — some track nearby word order, others long-range references or syntactic relations.</li>
+  <li><strong>Cost grows with sequence length squared-ish.</strong> Because every position compares against every other position, doubling the context length roughly quadruples that part of the work. This is the single biggest reason long contexts are expensive.</li>
+  <li><strong>Layers stack.</strong> Early layers tend to handle local structure; deeper layers build increasingly abstract combinations. A "layer" is one full attention-plus-feed-forward block, and models may stack dozens of them.</li>
+</ul>
+
+<h2>Stage 4: Logits, probabilities and sampling</h2>
+<p>After the final layer, each position's vector is projected onto the vocabulary, producing one raw score — a <em>logit</em> — per vocabulary token. A softmax over those logits turns them into a probability distribution: every candidate token gets a share, and all shares sum to 1. That distribution is the model's entire output for this step.</p>
+<p>Turning the distribution into an actual token is <em>sampling</em>, controlled by settings you have probably already used:</p>
+<ul>
+  <li><strong>Temperature</strong> scales the logits before the softmax. Low temperature sharpens the distribution (more deterministic, safer, repetitive); high temperature flattens it (more varied, more likely to wander off-track). Temperature 0-style greedy decoding always takes the top candidate.</li>
+  <li><strong>Top-k</strong> restricts sampling to the k highest-probability candidates.</li>
+  <li><strong>Top-p (nucleus) sampling</strong> keeps the smallest set of candidates whose probabilities sum to p, so the pool adapts to how confident the model is.</li>
+</ul>
+<p>If you have ever wondered why a chatbot repeats itself, the answer is usually sampling settings plus a context that does not give it anything new to work with.</p>
+
+<h2>Autoregression: the loop that writes text</h2>
+<p>Generation is nothing more than the loop above, repeated: predict one token, append it, predict the next, stop when a stop token appears or a limit is reached. Here is the same pipeline as a diagram, then as pseudocode.</p>
+<figure><img src="/assets/img/diagrams/how-large-language-models-actually-work-llm-flow.svg" alt="Diagram: prompt text passes through a tokenizer, becomes embeddings, flows through attention layers, produces logits over the vocabulary, and a sampler picks the next token, which loops back into the input until a stop token is reached"><figcaption>The inference loop: one token per pass, fed straight back into the input.</figcaption></figure>
+<pre><code>def generate(prompt, max_new_tokens=50, temperature=0.7):
+    tokens = tokenize(prompt)
+    for _ in range(max_new_tokens):
+        logits = model(tokens)                  # one score per vocabulary token
+        probs  = softmax(logits / temperature)  # turn scores into probabilities
+        next   = sample(probs)                  # or take argmax for greedy decoding
+        if next == EOS_TOKEN:
+            break
+        tokens.append(next)
+    return detokenize(tokens)</code></pre>
+<p>Two practical readings of this loop. First, every token you generate is <em>re-fed as input</em>, so a small mistake early on becomes context for every later step — errors compound. Second, the cost of a generation grows with the number of tokens already present, which is why streaming a long answer costs more than a short one even when the answer is trivial.</p>
+
+<h2>What the numbers in a model card actually mean</h2>
+<p>Model descriptions are full of figures that get conflated. This table separates them:</p>
+<table>
+  <thead>
+    <tr><th>Term</th><th>What it measures</th><th>Why you care</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Parameter count</td><td>How many learned numbers the model contains (e.g. a "7B" model has about 7 billion)</td><td>Rough proxy for knowledge capacity — and, multiplied by bytes per weight, for memory needed to load it</td></tr>
+    <tr><td>Context window</td><td>Maximum tokens (input + generated output) that fit in one pass</td><td>Sets the ceiling for documents, history and examples you can supply at once</td></tr>
+    <tr><td>Layer count / hidden size</td><td>Depth and width of the network</td><td>Determines compute cost per token; more depth is not automatically better for your task</td></tr>
+    <tr><td>Vocabulary size</td><td>Number of distinct tokens the model can score</td><td>Affects tokenizer efficiency and the size of the output layer</td></tr>
+    <tr><td>Quantization (e.g. 4-bit, 8-bit)</td><td>How many bits each weight is stored with</td><td>Cuts memory and speed at a quality cost — the trade-off that decides what runs on your own hardware</td></tr>
+    <tr><td>Training data cutoff</td><td>Approximate date of the newest training material</td><td>Anything after that date must arrive through your context — see <a href="/post/rag-vs-fine-tuning-llm">RAG vs fine-tuning</a></td></tr>
+  </tbody>
+</table>
+
+<h2>How model quality is actually measured</h2>
+<p>"Is this model good?" is not a question with one number. Evaluation is a small discipline of its own, and knowing its basic vocabulary protects you from misleading claims:</p>
+<ul>
+  <li><strong>Perplexity</strong> measures how surprised the model is by held-out text — lower means it predicts text like this more accurately. It is useful for comparing variants of the same model family but is hard to compare across tokenizers.</li>
+  <li><strong>Public benchmarks</strong> come in families: exam-style knowledge tests (MMLU-style multiple choice), reasoning sets, code-generation sets such as HumanEval-style tasks, and safety/alignment suites. They are easy to quote and easy to game — once a benchmark enters training data, its score stops meaning what it meant.</li>
+  <li><strong>Human preference evaluation</strong> asks people to pick the better of two answers, and powers the "helpful assistant" tuning stage. It captures style and usefulness, but also inherits human biases (verbosity, confidence, formatting).</li>
+  <li><strong>Model-based evaluation</strong> (using one model to grade another) scales, but inherits the grader's blind spots and should be calibrated against a sample of human judgments.</li>
+  <li><strong>Your own task evaluation</strong> is the only one that answers your question. Twenty to fifty real examples from your workload, graded by you or a rubric, will tell you more than any leaderboard — and it is the only metric that survives model updates.</li>
+</ul>
+<p>When you read a benchmark claim attached to a model release, treat it as a hypothesis worth checking against the report's methodology; the habits in <a href="/post/how-to-read-research-paper">how to read a research paper</a> apply directly to model cards and evaluation sections.</p>
+
+<h2>Where the pipeline breaks down</h2>
+<p>Understanding the mechanism also tells you exactly which failures to expect. None of these are bugs to be patched; they are properties of next-token prediction:</p>
+<ul>
+  <li><strong>Hallucination is a feature of the objective.</strong> The model is rewarded for plausible text, not verified text. When it lacks the answer, it generates a plausible one anyway.</li>
+  <li><strong>Knowledge stops at the training cutoff.</strong> No amount of clever phrasing gets post-cutoff facts into the weights. Facts must arrive through the context window — which is what retrieval does — or the weights must be updated.</li>
+  <li><strong>Long context is not the same as used context.</strong> A model can accept 100k tokens and still ignore the crucial sentence buried in the middle. What you place where matters as much as how much you place; that is the entire subject of <a href="/post/context-engineering-over-prompt-engineering">context engineering</a>.</li>
+  <li><strong>Tokenization creates sharp edges.</strong> Precise arithmetic on large numbers, exact string matching, and counting characters are all harder than they should be, because the model works on token abstractions, not characters.</li>
+  <li><strong>Confidence is not calibrated.</strong> A fluent, unhedged answer has no built-in reliability signal. If correctness matters, verify against a source outside the model.</li>
+  <li><strong>Small input changes can flip outputs.</strong> Because sampling injects randomness and attention redistributes weights, two nearly identical prompts can produce different answers. Evaluation needs multiple runs, not one.</li>
+</ul>
+
+<h2>Key takeaways</h2>
+<ul>
+  <li>An LLM is one function in a loop: tokens in, probability distribution out, sampled token appended, repeat.</li>
+  <li>Tokenization decides what the model sees; embeddings give each token a starting vector; attention rewrites those vectors using context; sampling turns final scores into an actual token.</li>
+  <li>Parameters encode distilled patterns from training data; the context window supplies everything model-specific about the current request.</li>
+  <li>Temperature, top-k and top-p shape the randomness of the choice — they do not add knowledge.</li>
+  <li>Quality claims are only meaningful when you know which evaluation produced them; your own small, task-specific test set beats any public benchmark for decision-making.</li>
+  <li>Hallucination, stale knowledge and ignored context are structural, so design workflows that check the output instead of trusting it.</li>
+</ul>
+
+<p>The next concrete step: take one prompt you use regularly and write down, line by line, which part of the model's input each sentence is competing for — the task, the constraints, the examples, the data. Then vary one piece at a time and run it a few times to see what actually moves the output. That single habit is the bridge from this article's mechanics to <a href="/post/context-engineering-over-prompt-engineering">context engineering</a>, where arranging those inputs becomes a deliberate design job.</p>

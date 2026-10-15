@@ -1,0 +1,137 @@
+<p>Interviews reward preparation that looks spontaneous. The candidates who sound fluent under pressure are almost never improvising — they are working from a structure they have rehearsed so many times that it survives a nervous system in fight-or-flight mode. The trick is having a structure you can adapt, not a script you recite.</p><p>This article is that structure: the STAR answer format used properly (most people use it backwards), a story bank of eight prepared anecdotes that covers the large majority of behavioural questions, three fully worked illustrative answers, the failure modes that sink prepared candidates, and the separate discipline of the technical interview — thinking out loud, starting brute-force, then optimising.</p>
+
+<h2>STAR, used properly</h2>
+<p>Situation, Task, Action, Result. The four-part frame exists to stop the two classic collapse modes: answers that are all backstory with no content, and answers that describe a team achievement so vaguely that the interviewer learns nothing about you.</p>
+<p>The common mistake is proportion. Most candidates spend roughly seventy percent of the answer on Situation and Task — the setup, the team, the history — and rush Action and Result in the last twenty seconds. Interviewers remember what came at the end, so they remember nothing. Flip it:</p>
+<ul>
+<li><strong>Situation — two or three sentences.</strong> Where, when, what was at stake. No org chart.</li>
+<li><strong>Task — one sentence.</strong> What specifically was <em>yours</em> to do. If you cannot isolate your task, you are about to give a team answer to a personal question.</li>
+<li><strong>Action — the bulk of the answer.</strong> What <em>you</em> did, in order, with the reasoning at the decision points. This is the part that gets evaluated; spend about half to two-thirds of the clock here.</li>
+<li><strong>Result — one or two sentences, concrete.</strong> What changed, what you measured if a measurement existed, and what you learned. Numbers you actually know are gold; invented numbers are a liability.</li>
+</ul>
+<p>One detail that separates prepared from polished: state your <em>contribution</em> precisely even inside a team story. "We" answers to "tell me about a time <em>you</em>" are the single most common behavioural failure.</p>
+
+<h2>Build a story bank</h2>
+<p>Eight well-chosen stories answer the large majority of behavioural questions you will face, because most questions are variations on a few themes. Prepare eight, each a real episode from your work or studies, each written down as a one-page STAR skeleton.</p>
+<table><thead><tr><th>Story theme</th><th>Question shapes it answers</th><th>What it must prove</th></tr></thead><tbody>
+<tr><td>Conflict</td><td>Disagreement with a teammate, feedback you gave or received, a difficult stakeholder</td><td>You can disagree without detonating the relationship</td></tr>
+<tr><td>Failure</td><td>A mistake you made, a project that went badly, something you would redo</td><td>You own it, diagnose it, and changed behaviour</td></tr>
+<tr><td>Leadership</td><td>Leading without authority, unblocking a team, making an unpopular call</td><td>You move things forward, title or not</td></tr>
+<tr><td>Ambiguity</td><td>Vague requirements, a goal that shifted, a task with no playbook</td><td>You create clarity instead of waiting for it</td></tr>
+<tr><td>Learning</td><td>Picking up a new technology or domain under a deadline</td><td>You have a repeatable learning method</td></tr>
+<tr><td>Speed</td><td>Tight deadline, production incident, ship-or-slip decision</td><td>You triage well when time is the constraint</td></tr>
+<tr><td>Quality</td><td>Raising the bar, catching a defect, improving a process nobody asked you to touch</td><td>You have standards beyond "it runs"</td></tr>
+<tr><td>Initiative</td><td>Something you started unprompted, an improvement you noticed</td><td>You see problems before being assigned them</td></tr>
+</tbody></table>
+<p>Maintain the bank as a single document with one page per story: the STAR skeleton, one memorable concrete detail, and a list of the other questions the story could be recycled for. Strong stories are portable — your "failure" story often also answers "tell me about pressure" and "a time you received feedback".</p>
+<p>Two rules for the bank: every story must be <em>true</em> — interviewers ask one follow-up layer deep and invented stories collapse there — and no story should implicate a former employer's secrets or trash a named colleague.</p>
+
+<h2>Worked example 1 — conflict</h2>
+<p>The following is an <strong>illustrative answer</strong>, written as a teaching example, not a transcript of a real interview. Replace every detail with your own true experience; its job is to show proportion and rhythm.</p>
+<p><em>Question: "Tell me about a time you disagreed with a teammate."</em></p>
+<ul>
+<li><strong>Situation (3 sentences).</strong> "On a four-person student project, we were two weeks from the deadline and my teammate wanted to hand-roll the login system; I believed the course-provided authentication module was the better route."</li>
+<li><strong>Task (1 sentence).</strong> "I owned the backend, so the shape of this decision fell to me — but shipping it over a teammate's objection would have cost us the cooperation we needed in the final two weeks."</li>
+<li><strong>Action (the bulk).</strong> "I asked him to walk me through his plan first, and found his real concern was that the module could not do role-based permissions — which was true. I then built a half-day spike: the module plus a thin permissions layer on top, with the tricky part wired up and working. We reviewed the spike together, and the demo settled it faster than any argument would have. I also wrote down the decision and the limitation in the repo so nobody re-litigated it in week eleven."</li>
+<li><strong>Result.</strong> "We shipped on the module, the permissions layer took two days instead of the two weeks hand-rolling would have, and he ended up maintaining it — which he told me was only possible because he had seen exactly how it was put together."</li>
+<li><strong>What I would do differently.</strong> "I should have raised the permissions limitation in the first planning meeting instead of waiting for the conflict."</li>
+</ul>
+<p>Notice the mechanics: the disagreement is never framed as the other person being wrong; the Action is a sequence with reasoning; the "spike" is the concrete detail an interviewer can picture.</p>
+
+<h2>Worked example 2 — failure</h2>
+<p>Another <strong>illustrative answer</strong>, same rules. Failure questions are not trap questions; they are ownership questions.</p>
+<p><em>Question: "Tell me about a time something failed under your watch."</em></p>
+<ul>
+<li><strong>Situation.</strong> "I maintained a small internal tool for a student society that generated membership lists. About a hundred people used it at sign-up peaks."</li>
+<li><strong>Task.</strong> "I was the sole maintainer, and I had shipped a change to the export feature the day before sign-ups opened."</li>
+<li><strong>Action.</strong> "The change silently truncated exports above a thousand rows — I had tested with my own data set of forty rows and never tested the boundary. A committee member messaged me that the numbers looked wrong. I reverted the change within the hour, re-ran the export for everyone affected, and posted a written explanation in the committee channel rather than quietly fixing it. Then I added the boundary test the feature had never had, and a rule for myself that any import or export gets tested at ten times the largest real data set I know of."</li>
+<li><strong>Result.</strong> "Nobody got wrong membership data in the end because the re-run happened before the deadline. The test is still in the suite, and the 'ten times real size' rule has since caught two similar bugs in other projects of mine."</li>
+<li><strong>Learning.</strong> "Testing with realistic scale, not representative scale."</li>
+</ul>
+<p>The failure is real, the blast radius is described honestly, and the ending is a changed behaviour rather than a lesson poster.</p>
+
+<h2>Worked example 3 — learning under a deadline</h2>
+<p>A third <strong>illustrative answer</strong>, for the "you had to pick this up fast" family of questions — the one technical candidates underprepare most.</p>
+<p><em>Question: "Describe a time you had to learn something quickly."</em></p>
+<ul>
+<li><strong>Situation.</strong> "Two weeks before a deadline, our group project discovered the analytics part of the brief needed SQL we had all avoided — joins across three tables, plus aggregates."</li>
+<li><strong>Task.</strong> "I volunteered to get us productive, while still delivering my own features."</li>
+<li><strong>Action.</strong> "I set a limit: two focused 90-minute sessions a day for three days, each ending with a quiz I wrote for the rest of the team. I worked from the official documentation rather than listicles, and built every concept against our actual schema instead of sample data. On day two I found we were stuck on one specific join, so I turned that into a worked example everyone could reuse."</li>
+<li><strong>Result.</strong> "By the end of the week I had written the reporting queries myself and left the team a ten-question self-test. Nobody needed me afterwards — which was the point."</li>
+<li><strong>Learning.</strong> "Learning against real data sticks far better than tutorial data, and teaching it back exposes the gaps fastest."</li>
+</ul>
+<p>If you noticed that this answer also encodes a study method — retrieval practice and spaced sessions — that is deliberate, and our piece on <a href="/post/evidence-based-learning-techniques">evidence-based learning techniques</a> explains why it works.</p>
+
+<h2>Common failure modes</h2>
+<p>Prepared candidates fail in characteristic ways. Run your rehearsal against this list:</p>
+<ul>
+<li><strong>The context avalanche.</strong> Two minutes of Situation before anything happens. If the interviewer says "what exactly did <em>you</em> do?", you already lost points on proportion.</li>
+<li><strong>Weasel verbs.</strong> "Helped", "was involved in", "worked on". Replace every one with an action you personally took.</li>
+<li><strong>The flawless record.</strong> Only successes, only correct calls. Reads as either dishonest or junior.</li>
+<li><strong>Recycled stories with no fit.</strong> Your leadership story forced onto a conflict question is obvious within a sentence.</li>
+<li><strong>Vague results.</strong> "It went well" is not a result. A concrete outcome, a measurable one if one exists, or a specific learning.</li>
+<li><strong>Trashing previous employers or teammates.</strong> A reliable interviewer signal to decline the candidate, however good the story's technical content.</li>
+<li><strong>Scripts read aloud.</strong> Memorised word-for-word answers die at the first follow-up question. Memorise the skeleton, not the sentences.</li>
+<li><strong>No questions prepared to ask them.</strong> "Nothing, you covered it" wastes the one moment where you evaluate the employer.</li>
+</ul>
+
+<h2>Technical interviews: think out loud</h2>
+<p>Behavioural rounds test judgement; technical rounds test process. The evaluation criterion most candidates miss: interviewers are judging not only whether you reached the answer, but whether they would want to work beside you while you work. Silence is the only real failure — a candidate who thinks aloud and misses the optimum teaches the interviewer plenty; a silent candidate teaches them nothing.</p>
+<p>A process that works across coding, design and take-home discussions:</p>
+<ul>
+<li><strong>Restate and confirm.</strong> "I want to make sure I have the constraints: input size, expected read/write ratio…?"</li>
+<li><strong>Ask about constraints before designing.</strong> Scale, latency, consistency, and what "correct" means for the edge cases.</li>
+<li><strong>Start with the brute-force answer.</strong> State the simplest correct approach out loud. This is your correctness baseline and your safety net.</li>
+<li><strong>Name the bottleneck</strong> in the brute force, then optimise one dimension at a time, saying why each change helps.</li>
+<li><strong>Walk through an example by hand</strong> before writing anything, including one edge case (empty input, single element, duplicates — pick the one that applies).</li>
+<li><strong>Check complexity out loud</strong> in both time and space, and against the constraints you wrote down.</li>
+<li><strong>Invite pressure.</strong> "What would change if the input were ten times larger?" Handling that question calmly is itself a signal.</li>
+<li><strong>When stuck for more than a few minutes, say so and reset.</strong> "I'm going to step back and re-read the problem statement" is a professional move, not a concession.</li>
+</ul>
+
+<h2>A worked technical walkthrough</h2>
+<p>Again <strong>illustrative</strong> — a model of the process, not a recording. Question: <em>"Given a list of hourly login counts for a service, return the hour with the highest total, and say what you would change if this were a live stream of events."</em></p>
+<pre><code>Clarify:   input = list of ints, one per hour; ties? any one is fine; empty list?
+           -> agree: return an error or null on empty, first max on ties.
+
+Brute:     iterate once, track maxSoFar and its index.
+           Correct at any size. O(n) time, O(1) space.
+           Say it out loud: "It's already linear, so the optimisation is
+           probably not about the loop — it's about the data arriving."
+
+Live part: "If events stream in, I'd keep a rolling array of 24 running sums,
+           incrementing the bucket for the arriving timestamp, and expose a
+           read endpoint that scans the 24 buckets — still O(1) per event."
+
+Edge:      empty stream -> no hour yet; multiple timestamps for the same
+           hour in flight -> bucket increments handle it; timezone boundary
+           -> ask whether buckets are UTC or local (this is the real question).
+
+Complexity: O(n) total, O(1) extra space for the batch version;
+            O(1) per event and O(24) per read in the streaming version.
+</code></pre>
+<p>What made that answer strong had nothing to do with algorithmic fireworks: it confirmed constraints, stated a correct baseline, then showed engineering judgement about where the real difficulty lives (timezones, not loops). For candidates interviewing on a specific stack, being able to discuss why the code is shaped the way it is — the trade-offs in <a href="/post/clean-code-php-patterns">clean code patterns for PHP</a>, or the failure modes of a TypeScript type you chose — carries the same weight as the algorithm itself.</p>
+
+<h2>Rehearse without sounding scripted</h2>
+<p>Preparation and spontaneity are not opposites if you rehearse the right layer: make the <em>skeleton</em> automatic and let the wording be new each time. That is what makes it sound like you.</p>
+<ul>
+<li><strong>Rehearse out loud, standing up, at least once per story.</strong> Silent reading is not practice; the sentences you never said aloud will fail you first.</li>
+<li><strong>Time your answers.</strong> Ninety seconds to two and a half minutes is the working range for most behavioural answers; a stopwatch is the cheapest coach available.</li>
+<li><strong>Use spaced retrieval on your own bank.</strong> Shuffle the story list and pick one at random each morning; if you cannot rebuild its STAR skeleton from memory, reread and re-space it — the same mechanics as flashcards.</li>
+<li><strong>Record one mock round</strong> with a friend or on your phone and listen once. Most verbal tics reveal themselves in the first five minutes of playback.</li>
+<li><strong>Defend real calendar blocks for practice.</strong> Two focused mock-interview sessions on your calendar beat an evening of anxious re-reading — see <a href="/post/deep-work-realistic-system">building a realistic deep-work system</a> for how to hold that time.</li>
+<li><strong>Prepare your questions for them.</strong> Three per interview: about the team's onboarding, about how work is prioritised, about what the last six months exposed as the role's real challenge.</li>
+</ul>
+<p>And a limit worth stating: no amount of rehearsal substitutes for material to rehearse. If your story bank is thin because you have not done much yet, the fix is not better scripting — it is taking on one more responsible thing this term. A strong <a href="/post/student-portfolio-gets-interviews">student portfolio</a> is built from finished projects, not claimed potential.</p>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>STAR is a proportion tool: two sentences of situation, one of task, most of the answer on your actions, one concrete result.</li>
+<li>Eight true stories — conflict, failure, leadership, ambiguity, learning, speed, quality, initiative — cover the large majority of behavioural questions.</li>
+<li>Every story must survive one layer of follow-up questions, so every story must be true and specific.</li>
+<li>Illustrative answers are for structure only; memorise the skeleton, never the sentences.</li>
+<li>In technical rounds, think out loud: restate, state the brute force, name the bottleneck, optimise, test an edge case, check complexity.</li>
+<li>Silence is the only real technical-interview failure; being stuck out loud is a recoverable situation.</li>
+<li>Rehearse out loud, time it, space it, record one mock — and prepare questions to ask them.</li>
+</ul>
+<p>Your next step: open a blank document and write your eight story titles, one line each, right now — you do not need the full answers yet, only the episodes. Then take one story a day, expand it to a STAR skeleton, say it out loud twice, and stop. Ten days from now you will have a bank; two weeks from now it will sound like you — which is exactly the impression the format exists to create.</p>

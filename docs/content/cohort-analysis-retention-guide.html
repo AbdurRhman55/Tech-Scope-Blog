@@ -1,0 +1,179 @@
+<p>Total users always go up — even when your product is leaking. A rising total tells you nothing about whether the people who arrived last month are still getting value, because new signups constantly refill the bucket. Cohort analysis stops that self-deception: group everyone who arrived in the same period, then follow only that group forward, week by week. This guide defines the terms, walks through a complete retention calculation with clearly-labeled sample numbers, shows how to read the resulting table, and gives you a diagnosis map for turning patterns into the next thing worth fixing.</p>
+
+<h2>The direct answer: what a cohort is</h2>
+
+<p>A <strong>cohort</strong> is a group of users who shared the same qualifying event — usually signing up — in the same time window. Retention for that cohort is the share of the group that is still doing something meaningful in each subsequent period. You repeat the measurement for every cohort, and the result is a table whose rows are signup periods and whose columns are time elapsed since signup.</p>
+
+<ul>
+<li><strong>Cohort</strong> — users who signed up in the same week (or month). Fixed forever: the January cohort never gains members.</li>
+<li><strong>Cohort size</strong> — how many users entered that row. The denominator for every cell in the row.</li>
+<li><strong>Active</strong> — your chosen measure of value: performed the core action at least once in that period.</li>
+<li><strong>Period</strong> — the column interval: day, week, or month. Weekly cohorts with weekly columns are the most common default.</li>
+<li><strong>Retention rate</strong> — active cohort members in a period ÷ cohort size, expressed as a percentage.</li>
+</ul>
+
+<p>The single most important design decision is the definition of <strong>active</strong>. &ldquo;Logged in&rdquo; is easy to instrument and almost meaningless; &ldquo;created or edited a project&rdquo; costs more to define and tells you whether the product did its job. Choose the action that a retained user performs as part of the habit you are selling, write it down, and never change it silently mid-analysis.</p>
+
+<h2>Building the table: from events to cells</h2>
+
+<p>Underneath every cohort table are three plain steps:</p>
+
+<ol>
+<li>Assign each user a cohort key — the week (or month) containing their signup timestamp.</li>
+<li>Find every qualifying action by that user, and bucket each action into the period it fell in <em>relative to their own signup</em>, not relative to today.</li>
+<li>Count distinct users per (cohort, period) cell, divide by cohort size, and you have the table.</li>
+</ol>
+
+<pre><code>-- Illustrative query (MySQL-flavoured); assumes a users table and an events table
+-- Step 1 + 2 in one pass: cohort week vs. week of activity
+SELECT
+  YEARWEEK(u.signed_up_at, 1)  AS cohort_week,
+  YEARWEEK(e.acted_at, 1)      AS active_week,
+  COUNT(DISTINCT e.user_id)    AS active_users
+FROM users u
+JOIN events e ON e.user_id = u.user_id
+WHERE e.acted_at &gt;= u.signed_up_at          -- never count pre-signup activity
+GROUP BY cohort_week, active_week;
+
+-- Step 3 (in SQL or in the reporting layer):
+--   weeks_since = difference between the two weeks
+--   retention   = active_users / cohort_size * 100</code></pre>
+
+<p>Two practical notes on that sketch. Compute the column index with a date expression rather than by subtracting week numbers, which breaks across year boundaries. And beware the classic off-by-one: a user who signs up on Wednesday belongs to the cohort of that week, and their activity on Thursday is period 0, not period 1.</p>
+
+<h2>A fully worked retention calculation</h2>
+
+<p>Everything below uses <strong>illustrative sample numbers invented for this article</strong> — they are not measurements from any real product. The product is a project-management app; the qualifying action is creating or editing a project during the week.</p>
+
+<h3>Step 1 — Fix the cohort and its size</h3>
+
+<p>Take everyone who signed up between Monday 5 January and Sunday 11 January 2026. That cohort has <strong>N = 1,000 users</strong>. Every percentage in this row will divide by 1,000.</p>
+
+<h3>Step 2 — Define &ldquo;active&rdquo; once</h3>
+
+<p>Active in week W means: performed at least one qualifying action (created or edited a project) at any point during that week. Session opens, marketing-email clicks and support tickets do not count.</p>
+
+<h3>Step 3 — Count, then divide</h3>
+
+<p>For each subsequent week, count how many of those 1,000 distinct users performed the action, then divide by 1,000:</p>
+
+<table>
+<thead>
+<tr><th>Week since signup</th><th>W0</th><th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>W6</th></tr>
+</thead>
+<tbody>
+<tr><td>Active users (sample)</td><td>1,000</td><td>640</td><td>510</td><td>455</td><td>430</td><td>415</td><td>408</td></tr>
+<tr><td>Retention = active ÷ 1,000</td><td>100%</td><td>64.0%</td><td>51.0%</td><td>45.5%</td><td>43.0%</td><td>41.5%</td><td>40.8%</td></tr>
+</tbody>
+</table>
+
+<p>The arithmetic for one cell, spelled out: <strong>W1 retention = 640 active ÷ 1,000 cohort members × 100 = 64.0%</strong>. W4 is 430 ÷ 1,000 = 43.0%. Nothing more complicated happens anywhere in the table — the entire method is that division, repeated.</p>
+
+<h3>Step 4 — Compare cohorts with percentages, never raw counts</h3>
+
+<p>A second cohort (12–18 January, sample size <strong>1,200</strong>) recorded 768 active users in W1. Raw counts would suggest growth (768 vs 640); the rates tell the real story:</p>
+
+<ul>
+<li>Cohort A, W1: 640 ÷ 1,000 = <strong>64.0%</strong></li>
+<li>Cohort B, W1: 768 ÷ 1,200 = <strong>64.0%</strong> — identical retention, bigger top-of-funnel</li>
+</ul>
+
+<p>Now suppose an onboarding change shipped before cohort C (26 January – 1 February, N = 1,150), and its W4 count came in at 587: 587 ÷ 1,150 = <strong>51.0%</strong> against cohort A's 43.0%. That is a comparison of rates on equal footing — the first signal that the change was worth something, to be confirmed on later cohorts.</p>
+
+<h3>Step 5 — Refuse to read cells that do not exist yet</h3>
+
+<p>A cohort that signed up a week or two ago has no W4 number. Its future cells are blank — write <strong>—</strong>, never zero, never an estimate. Only compare two cohorts at periods both of them have actually reached. Reading immature cells as if they were results is the fastest way to declare victory early.</p>
+
+<h2>Reading the table</h2>
+
+<p>Rows are signup periods, columns are time since signup, and color intensity shows the rate. A healthy product shows strong values extending to the right; a leaking one fades quickly after the first column.</p>
+
+<figure><img src="/assets/img/diagrams/cohort-analysis-retention-guide-cohort-table.svg" alt="Illustrative cohort retention grid: five weekly signup cohorts as rows and weeks since signup as columns, cells shaded by retention percentage, with the newest cohort showing em-dash cells for periods it has not reached yet"><figcaption>Illustrative cohort grid. Darker cells mean higher retention; em-dashes mark periods the newest cohort has not reached.</figcaption></figure>
+
+<p>What to look for, in order:</p>
+
+<ul>
+<li><strong>The shape of the decay.</strong> A steep first drop that flattens into a plateau is the classic healthy curve: some users were never going to stay, and the ones who stay, stay.</li>
+<li><strong>The plateau level.</strong> Where the curve flattens is your loyal core. A flat tail is more valuable than a flattering first column.</li>
+<li><strong>Whether curves are getting flatter or steeper row by row.</strong> Later cohorts holding up better than earlier ones is the trend that matters — not the total user count.</li>
+<li><strong>The period of the cliff.</strong> The column where the biggest drop happens tells you which moment of the product lifecycle to investigate.</li>
+<li><strong>Partial rows.</strong> The newest cohorts are truncated by definition; do not misread blank cells as decline.</li>
+</ul>
+
+<h2>Diagnosis: what each pattern usually means</h2>
+
+<p>No single pattern proves a cause — this table maps a reading to the most likely explanation and the first thing worth checking, not a verdict:</p>
+
+<table>
+<thead>
+<tr><th>Pattern in the table</th><th>Likely cause</th><th>Check first</th><th>Typical next move</th></tr>
+</thead>
+<tbody>
+<tr><td>Large drop from W0 to W1</td><td>Onboarding or first-run problem — users never reach first value</td><td>Completion rates of the activation steps; time-to-first-action</td><td>Shorten setup, provide sample data, make the first real action obvious</td></tr>
+<tr><td>Steady bleed across W1–W3</td><td>The recurring value is missing, or the audience is wrong</td><td>Which actions precede retention; split cohorts by acquisition source</td><td>Build the habit loop, fix targeting, trigger re-engagement at the right moment</td></tr>
+<tr><td>Collapse around W4</td><td>Value delivery problem surfacing at the one-month mark, often at a boundary: trial end or billing cycle</td><td>Whether users reached the recurring value before week 4; plan limits and renewal dates against the drop column</td><td>Rework the trial or the mid-trial experience; deliver the core value earlier</td></tr>
+<tr><td>Flat line after two months</td><td>Healthy core — retention has plateaued</td><td>That the plateau is stable across several cohorts</td><td>Invest in acquisition; the product is keeping its users</td></tr>
+<tr><td>Every cohort decays faster than the one before</td><td>Product regression, seasonality, or a shift to lower-quality channels</td><td>Release dates and channel mix against the cohort start dates</td><td>Fix the regression or the targeting, not the charts</td></tr>
+<tr><td>One channel's cohorts fade much faster</td><td>Traffic quality, not product quality</td><td>Cohorts split by source or campaign</td><td>Reallocate spend; stop optimizing toward that channel</td></tr>
+<tr><td>New cohort better at W1 but identical by W4</td><td>A one-off incentive or promo pulled activity forward</td><td>Promotions, contests, bot-like session patterns</td><td>Do not ship the victory lap; watch the mature cells</td></tr>
+<tr><td>W0 materially below 100%</td><td>Definition or boundary bug — signup week and action week misaligned</td><td>Time zones, week-start conventions, the <code>&gt;= signed_up_at</code> filter</td><td>Fix the query before analyzing anything</td></tr>
+</tbody>
+</table>
+
+<h2>Why blended metrics lie</h2>
+
+<p>This is the reason cohort analysis exists. Three failure modes fool teams routinely:</p>
+
+<ul>
+<li><strong>Growth masking decay.</strong> Total monthly actives can keep rising while every individual cohort's curve gets steeper — acquisition volume hides deteriorating retention because new users outnumber the losses.</li>
+<li><strong>Old cohorts flattering the average.</strong> A blended &ldquo;overall retention&rdquo; number mixes users of very different tenure. Loyal long-term users inflate it while the newest cohorts quietly worsen; you find out months later.</li>
+<li><strong>Composition shifts.</strong> If a high-volume, low-quality channel enters the mix, the blended number moves for a reason that has nothing to do with the product.</li>
+</ul>
+
+<p>The fix is mechanical: always compare like with like — same period index, same window length, cohorts of comparable maturity — and report the cohort view alongside whatever headline metric your team insists on.</p>
+
+<blockquote>Acquisition without retention is a bucket with a hole.</blockquote>
+
+<p>For the presentation side, the <a href="/post/data-visualization-principles">chart-honesty rules in our visualization guide</a> apply directly: label the period, show the denominators, and do not truncate the axis to dramatize a plateau.</p>
+
+<h2>Common mistakes and edge cases</h2>
+
+<ul>
+<li><strong>Vanity definitions of active.</strong> Any action a disinterested user can perform will produce a beautiful, useless curve.</li>
+<li><strong>Raw counts instead of rates</strong> when cohort sizes differ — always normalize by cohort size.</li>
+<li><strong>Changing the definition mid-stream.</strong> A definition change resets comparability; version the metric and restate history if you must change it.</li>
+<li><strong>Time-zone and week-boundary drift.</strong> Signup in one time zone, activity in another, week starting Sunday in one system and Monday in another — cells shuffle and small cohorts distort.</li>
+<li><strong>Reading immature cohorts.</strong> Blank is not zero. Compare only overlapping period ranges.</li>
+<li><strong>Tiny cohorts.</strong> When a row has a handful of users, one person's behavior moves the percentage dramatically; widen the window or merge cohorts before drawing conclusions.</li>
+<li><strong>Incentivized or fraudulent signups.</strong> Bots and giveaway traffic produce strong W0 and catastrophic W1; segment them out or your diagnosis will target the wrong fix.</li>
+<li><strong>Silent seasonality.</strong> A holiday-period cohort behaves differently for reasons unrelated to your release calendar; compare against the same window last period where you can.</li>
+<li><strong>Survivorship in segments.</strong> &ldquo;Users who created three projects in week 1 retain at 80%&rdquo; describes users who already succeeded — it is a description of value, not a lever that guarantees it.</li>
+</ul>
+
+<p>Long event tables also turn into slow queries as history accumulates — the cohort SQL above scans events by date, which is exactly the pattern our <a href="/post/sql-indexing-practical-guide">indexing walkthrough</a> optimizes. And if you want the analysis to be re-runnable six months later, keep the query and the metric definition in <a href="/post/reproducible-research-environment">a reproducible analysis environment</a> rather than in a notebook nobody can execute.</p>
+
+<h2>From analysis to action</h2>
+
+<ol>
+<li>Pick one cliff — the single largest drop — and ignore everything else for now.</li>
+<li>Write down the user's experience at that exact moment: what they had done, what the product asked of them next.</li>
+<li>Form one hypothesis: &ldquo;Users churn at W4 because they hit the project limit before experiencing collaboration.&rdquo;</li>
+<li>Change one thing and ship it to the next cohort.</li>
+<li>Compare W4 of the new cohort with W4 of the previous cohorts at the same maturity, and record the result — including a null result.</li>
+</ol>
+
+<p>Cohort analysis earns its keep when it becomes a loop rather than a report: measure the cliff, form a hypothesis, change one thing, re-measure the same cell.</p>
+
+<h2>Key takeaways</h2>
+
+<ul>
+<li>A cohort is a fixed group defined by a shared signup period; retention is that group's share still doing something meaningful per period.</li>
+<li>The definition of &ldquo;active&rdquo; is the analysis — pick a core action, document it, and never change it silently.</li>
+<li>Every cell is one division: distinct active users in the period ÷ cohort size.</li>
+<li>Always compare percentages, never raw counts, and never read cells a cohort has not reached.</li>
+<li>The shape of the curve matters: steep-then-flat is healthy; a cliff at a specific column points at a specific moment in the lifecycle.</li>
+<li>Blended totals can rise while every cohort worsens — report cohorts alongside headline metrics.</li>
+<li>One cliff, one hypothesis, one change, re-measure the same cell: that loop is the actual deliverable.</li>
+</ul>
+
+<p>Your next step: build the table for your own product's last eight signup weeks with one honest &ldquo;active&rdquo; definition, blank out the immature cells, and find the column with the biggest drop. Then read it against the diagnosis table above before proposing any fix — the pattern, not the total user count, is telling you where to look.</p>

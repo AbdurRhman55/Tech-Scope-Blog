@@ -1,0 +1,139 @@
+<p>Spec sheets are marketing. Here is what changes daily comfort for people who build software.</p>
+<p><strong>The direct answer:</strong> as of <strong>October 2026</strong>, the priority order for a developer machine is memory first, sustained single-core speed second, fast storage third — the NPU only matters if you run local models daily, and a discrete GPU matters mainly for 3D, video or ML training. Everything below is written as a <em>buying principle</em> with a date stamp, not as a vendor claim: hardware rows move every year, so treat the numbers here as a snapshot to re-verify against current reviews before you spend money.</p>
+
+<h2>How to read this guide</h2>
+<p>This article is dated by design — the year is in the title. CPU generations, NPU software support, memory standards and battery claims all change within a product cycle, so the useful output is not a model number; it is a way of ranking specs against your own workload.</p>
+<ul>
+<li><strong>Principles over parts.</strong> "Memory is the ceiling" survives four generations; "chip X has Y cores" does not.</li>
+<li><strong>Every hardware observation carries an "as of October 2026" stamp</strong> — that stamp means "re-check this before buying".</li>
+<li><strong>No vendor benchmarks are repeated here.</strong> Where a figure would normally appear, you get the question to ask instead.</li>
+<li><strong>Illustrative scenarios are labeled as hypothetical.</strong> They are worked examples, not measurements.</li>
+<li><strong>Fast-moving specs deserve a live check:</strong> independent reviews, the manufacturer's product page, and your toolchain's own compatibility notes.</li>
+</ul>
+
+<h2>Memory is the ceiling</h2>
+<p>Compilers, containers and browsers each want gigabytes. As of October 2026, 16 GB is workable; 32 GB removes friction you stop noticing after a week. Memory is the one spec that decides whether your machine feels calm or busy, and it is the one you most often cannot change later.</p>
+
+<ul>
+<li><strong>RAM is the daily-comfort spec, not the CPU.</strong> The typical developer pattern — IDE or editor, half a dozen browser tabs, a local database, a container stack — is bounded by memory long before it is bounded by clock speed.</li>
+<li><strong>Containers multiply quietly.</strong> Each service, cache and database holds its own slice; a compose file with five services is not free.</li>
+<li><strong>Swap is not memory.</strong> When you hit the ceiling the machine stops being responsive — and on machines where RAM is soldered, you cannot fix it after purchase.</li>
+<li><strong>Check upgradeability before checkout.</strong> As of October 2026, soldered memory is common in thin laptops, so the configuration you buy is often the configuration you keep for its whole life.</li>
+<li><strong>Local models reverse the math.</strong> If you run LLMs on your own machine, memory becomes the primary spec again — see the <a href="/post/local-llms-laptop-guide">guide to what actually runs on a laptop</a> for why model size is effectively a memory budget.</li>
+</ul>
+
+<h2>CPU: single-core still rules</h2>
+<p>Most build tools and IDEs punish weak single-core speed more than they reward core count. As of October 2026 that remains the honest reading of how developer tooling behaves: type-checking, incremental compilation, minification and many test runners are largely serial tasks, and a few of them run one process at a time.</p>
+
+<ul>
+<li><strong>Check generation before brand.</strong> A newer generation of a mid-range family often beats an older top-of-range part at the tasks developers actually run.</li>
+<li><strong>Ask about sustained load, not peak.</strong> Thin machines drop speed under sustained builds; a laptop that is fast for thirty seconds may be slow for a ten-minute build.</li>
+<li><strong>Core count still helps — but later.</strong> Parallel test suites, video exports, container hosts and compilation caches benefit from many cores. It is the second-order decision.</li>
+<li><strong>Independent, workload-matched reviews beat spec sheets.</strong> Look for a review that runs a build or a compile loop, not only a synthetic peak-load number.</li>
+<li><strong>Desktop vs laptop is a cooling decision.</strong> The same class of chip in a ventilated chassis holds its speed longer — which is why a mini-PC or desktop often outperforms a laptop at the same stated tier.</li>
+</ul>
+
+<h2>Storage: the quiet bottleneck</h2>
+<p>As of October 2026, an NVMe SSD is the baseline for any new developer machine — this is a configuration guideline, not a benchmark claim. What varies is capacity, sustained write behavior and how many drives you can attach.</p>
+
+<ul>
+<li><strong>1 TB is the sensible default capacity for a dev machine today</strong> (as of October 2026): operating system, several toolchains, containers and images, and a couple of large repositories fit without weekly cleanup.</li>
+<li><strong>Free space affects speed.</strong> Nearly full SSDs slow down and force you into constant housekeeping — buy more than you think you need.</li>
+<li><strong>Project size is not optional.</strong> Node dependency folders, model weights and build caches are measured in tens of gigabytes; check the size of your own repositories, not a demo project.</li>
+<li><strong>External drives are for archives, not for daily builds.</strong> Port and protocol speed (see below) determines whether an external SSD is a working extension or a stall.</li>
+</ul>
+
+<h2>Battery, thermals and the charger</h2>
+<p>Battery claims are the most numbers-heavy part of a spec sheet and the least transferable to your day. As of October 2026, treat any published battery figure as measured under a workload you do not run.</p>
+
+<ul>
+<li><strong>Read battery life as "for their test, not yours."</strong> Video playback and idle browsing use far less power than compiling, running a local server or a bright screen at full brightness.</li>
+<li><strong>Thermals decide sustained performance.</strong> Fan design, chassis and vents matter more to your tenth minute of work than the advertised turbo figure does to your first.</li>
+<li><strong>Real-world check:</strong> independent reviewers who run a repeatable load give you a defensible number; vendor pages describe an idealized one.</li>
+<li><strong>Bring your charger story with you.</strong> As of October 2026 USB-C charging is common but not universal on every vendor and tier — verify that the machine charges over the port you plan to use, and that your existing charger meets its power needs.</li>
+<li><strong>A machine that needs the charger at 4 pm is a desktop.</strong> If you work away from outlets, weight the battery and charger questions above a marginal CPU gain.</li>
+</ul>
+
+<h2>Do you need an NPU?</h2>
+<p>Only if you run local models daily. For everyone else it is a line item, not a reason. As of October 2026, NPU silicon is present in many new machines, but what matters is not the presence of the chip — it is whether the software you use actually dispatches work to it.</p>
+
+<ul>
+<li><strong>The bottleneck is the runtime, not the silicon.</strong> An NPU only accelerates what its vendor-specific toolchain supports; frameworks and inference engines add support at different speeds.</li>
+<li><strong>Ask a concrete question:</strong> which specific application of mine will use the NPU, in the version I will run, as of October 2026? If you cannot name one, you are buying a checkbox.</li>
+<li><strong>Many assistant features need a network, not an NPU.</strong> Cloud-based assistants do their work remotely; local acceleration is a separate decision.</li>
+<li><strong>If local AI is your plan, memory still usually dominates.</strong> Model size and memory bandwidth constrain what runs before the NPU does, so memory typically matters more than extra CPU cores for this workload.</li>
+<li><strong>Re-check yearly.</strong> Toolchain support for on-device accelerators changes fast; this sentence is a reminder to re-verify, dated October 2026.</li>
+</ul>
+
+<h2>Match the spec to the workload</h2>
+<p>The table below is the working core of this guide. Priorities are stated as of October 2026 and as ordering (what to buy first), never as benchmark results.</p>
+
+<table>
+<thead>
+<tr><th>Workload</th><th>What it hits first</th><th>Spec priority (as of October 2026)</th><th>Watch out for</th></tr>
+</thead>
+<tbody>
+<tr><td>Web frontend: one framework, dev server, browser</td><td>Memory (browser tabs) and disk</td><td>16 GB minimum, 32 GB comfortable; fast SSD</td><td>Tab accumulation outruns every other process</td></tr>
+<tr><td>Full-stack with containers and a local database</td><td>Memory, then sustained CPU</td><td>32 GB; fast SSD; strong single-core</td><td>Each container holds its own heap</td></tr>
+<tr><td>Mobile app builds (Gradle / Xcode)</td><td>Memory, single-core speed, disk</td><td>32 GB; fast SSD; current-generation CPU</td><td>Emulators and simulators are RAM-hungry</td></tr>
+<tr><td>Data analysis in Python or R, moderate data sizes</td><td>Memory and storage throughput</td><td>32 GB or more; keep datasets on local SSD</td><td>Large CSVs in memory; slow network drives</td></tr>
+<tr><td>Local LLMs and on-device AI</td><td>Memory capacity and bandwidth</td><td>Maximize memory first; NPU only if your runtime supports it</td><td>Model size is a memory budget, not a CPU question</td></tr>
+<tr><td>Video, 3D or ML training</td><td>GPU, then memory</td><td>Capable GPU first; memory second; CPU third</td><td>The one workload where a discrete GPU is not optional</td></tr>
+<tr><td>Backend APIs, small services, CI-heavy work</td><td>Usually nothing local</td><td>16–32 GB; prioritize comfort and battery</td><td>If CI does the heavy lifting, buy the machine you enjoy typing on</td></tr>
+</tbody>
+</table>
+
+<h2>Two buying decisions, worked through</h2>
+<p>Both scenarios below are <strong>hypothetical and illustrative</strong> — they show how to apply the principles, and are not measurements of any real machine.</p>
+
+<h3>Scenario A: backend developer, containers all day</h3>
+<ol>
+<li>List the daily stack: editor, terminal, browser with many tabs, Docker Compose with an application, a database and a cache, plus a local mail/test runner.</li>
+<li>Map each to a resource: browser and containers → memory; builds and tests → sustained CPU and disk; everything → storage capacity.</li>
+<li>Apply the table: memory first (32 GB class as of October 2026), current-generation CPU with strong single-core speed, 1 TB SSD, cooling you can live with.</li>
+<li>Downgrade deliberately: a discrete GPU adds cost, weight and power draw for zero benefit to this workload.</li>
+<li>Verify before paying: is the RAM upgradeable? Does the chassis hold speed during a long build? Does your existing charger work with it?</li>
+</ol>
+
+<h3>Scenario B: developer experimenting with local models</h3>
+<ol>
+<li>Start from the model you actually want to run, not the machine: model size sets a memory floor.</li>
+<li>Memory becomes the first decision, CPU generation second, thermals third; the NPU is only relevant if your inference toolchain supports it (verify as of October 2026).</li>
+<li>Expect to trade battery and portability for sustained throughput, and check the <a href="/post/local-llms-laptop-guide">local LLM guide</a> before committing.</li>
+<li>Keep the fallback visible: if local runs are occasional, renting compute may cost less than buying memory you rarely use — a judgment to make with your own usage, not a rule.</li>
+</ol>
+
+<h2>What not to buy, and other traps</h2>
+<ul>
+<li><strong>The spec-sheet CPU tier.</strong> Buying the top label in a thin chassis buys fan noise, not speed.</li>
+<li><strong>Unupgradeable memory "for now".</strong> Workloads grow; soldered RAM does not. Pay for headroom at purchase or accept the ceiling early.</li>
+<li><strong>An NPU without software.</strong> As of October 2026 the risk is buying a checkbox: the silicon is present, but the application support <em>your</em> tools need may not be.</li>
+<li><strong>A GPU for a workload that never touches it.</strong> Web and backend work rarely benefits; you pay in price, weight and battery.</li>
+<li><strong>Buying the previous generation because it is discounted.</strong> A discount is only a saving if the machine matches your workload — check that generation against current toolchain support.</li>
+<li><strong>Upgrading a machine whose bottleneck is elsewhere.</strong> If the pain is a slow external drive, a weak Wi-Fi link, an under-powered dock or a 40-tab browser, a new laptop will reproduce the same pain on new hardware.</li>
+<li><strong>Ignoring the ecosystem you already own.</strong> Phones, watches, headphones and file-sharing between them are a genuine daily-comfort factor — the same reasoning that makes <a href="/post/passkeys-passwordless-web">passkeys and device-based login</a> feel effortless on one platform and clumsy across two.</li>
+</ul>
+
+<h2>The checklist you run before paying</h2>
+<ol>
+<li>Write down the three things you do most in a working day — the ones that feel slow today.</li>
+<li>Map each to a resource using the workload table: memory, single-core, storage, GPU.</li>
+<li>Confirm memory capacity <em>and</em> upgradeability, as of October 2026, for the exact configuration you are buying.</li>
+<li>Check sustained-load behavior in an independent review that runs a workload resembling yours.</li>
+<li>Verify ports: how many displays, what charging protocol, and whether external drives run at the speed you need.</li>
+<li>Verify software support: your OS support window, your toolchain's platform support, and any accelerator runtime you intend to use (re-check as of October 2026).</li>
+<li>Check the battery test description, not just the hours: what workload produced that number?</li>
+<li>Decide the one spec you will not compromise — usually memory — and let the rest flex to the budget.</li>
+</ol>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>Memory is the ceiling: as of October 2026, 16 GB is workable and 32 GB removes daily friction; upgradeable slots are worth more than a label.</li>
+<li>Single-core speed and sustained cooling beat peak core counts for most developer tooling.</li>
+<li>Fast, roomy storage is unglamorous and decisive; buy capacity with headroom.</li>
+<li>Battery and NPU claims need the most skepticism: vendor workloads are not your workloads, and NPU value depends on software support you must verify yourself.</li>
+<li>Use the workload table to rank specs, then verify every dated claim against current reviews before purchasing.</li>
+<li>Fix the real bottleneck first — sometimes it is the machine, often it is the browser, the dock or the network.</li>
+</ul>
+
+<p>Buy for the slowest thing you do every day, not the benchmark you run once. Concretely: pick your three daily bottlenecks, run them through the workload table above, and take the top-priority spec — memory as of October 2026 — into your next purchase decision, checking every dated claim against a current independent review before you commit.</p>

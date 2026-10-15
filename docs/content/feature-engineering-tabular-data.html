@@ -1,0 +1,168 @@
+<p>For many structured-data problems, gradient boosting with thoughtful features remains a strong default — and the reason is not mystique, it is leverage. A tabular model is handed columns that already carry meaning, so the work shifts from learning a representation to choosing the right transformations: ratios, deltas, aggregations, time windows and interactions. This article explains why that combination is so hard to dislodge, walks through concrete feature families with a worked code example, covers the validation rules that stop features from leaking the future, and — importantly — states honestly where the &ldquo;features beat bigger models&rdquo; framing breaks down.</p>
+
+<h2>The direct answer: what the claim really means</h2>
+
+<p>The defensible version of the claim is narrower than a headline: <strong>on typical business tables — purchases, tickets, events, telemetry rows with typed columns — a gradient-boosted tree model fed domain-informed features is a strong, often winning baseline, and it usually beats training a large end-to-end network on the same raw columns.</strong> That is a statement about defaults and trade-offs, not a law of machine learning. Whether it holds for your data is an empirical question you answer with an honest validation split, not a citation.</p>
+
+<ul>
+<li><strong>It is a baseline claim:</strong> start here, benchmark against it, and only move when something beats it on your own holdout.</li>
+<li><strong>It is dataset-dependent:</strong> row count, number and cardinality of categoricals, missingness, signal-to-noise, and how much unstructured data sits alongside the table all shift the answer.</li>
+<li><strong>It is cost-dependent:</strong> a feature pipeline you maintain for a year is a different expense than a training run that needs a GPU cluster.</li>
+<li><strong>It is not a claim that deep learning fails on tables</strong> — architectures built specifically for tabular data keep narrowing the gap on some datasets (as of October 2026), and on problems with text, images or sequences, end-to-end models are simply in a different league.</li>
+</ul>
+
+<p>Keep that nuance through the rest of this guide: the features are the leverage, the model is the interchangeable part.</p>
+
+<h2>Structure is a gift</h2>
+
+<p>Unstructured inputs arrive as pixels, tokens or waveforms; a model must first learn what a representation even is. Tabular data arrives pre-represented: someone already decided that a row is an order, that a column is a timestamp, and that another is a currency amount. That buys you several advantages that hand-written features exploit directly:</p>
+
+<ul>
+<li><strong>Semantics are known.</strong> You know <code>discount</code> and <code>margin</code> interact multiplicatively, so you can write the product instead of hoping a network discovers it.</li>
+<li><strong>Types are mixed.</strong> Trees split on thresholds natively — no embedding layers, no normalization required for scale.</li>
+<li><strong>Sample sizes are often modest.</strong> Thousands to millions of rows reward low-variance models over high-capacity ones.</li>
+<li><strong>Time is explicit.</strong> Timestamps let you build recency and velocity features that encode decay directly.</li>
+<li><strong>Missingness is informative.</strong> A blank field usually means something; a good feature makes that explicit instead of hiding it behind an imputed number.</li>
+<li><strong>Interactions are cheap for trees.</strong> Boosted trees find two- and three-way interactions through successive splits without you enumerating them all.</li>
+</ul>
+
+<h2>Feature families that earn their keep</h2>
+
+<table>
+<thead>
+<tr><th>Family</th><th>Concrete example</th><th>What it captures</th><th>Watch out for</th></tr>
+</thead>
+<tbody>
+<tr><td>Ratios and rates</td><td>revenue ÷ orders (average order value); returns ÷ orders</td><td>Intensity normalized by size, comparable across customers</td><td>Division by zero; unstable values on tiny denominators — clip the denominator</td></tr>
+<tr><td>Deltas and momentum</td><td>this 30-day total minus the previous 30-day total</td><td>Direction of change, not just level</td><td>Noisy on short windows; make windows consistent</td></tr>
+<tr><td>Rolling aggregates</td><td>7/30/90-day sums, means, counts, maxima</td><td>Recency-weighted history at several horizons</td><td>Overlapping windows are fine; computing them past the split point is not</td></tr>
+<tr><td>Per-entity aggregates</td><td>mean revenue per customer joined back to each row</td><td>Long-run behavior of the entity</td><td>Leakage — the aggregate must only see earlier rows (shift before aggregating)</td></tr>
+<tr><td>Time features</td><td>days since signup, days since last order, hour of day, day of week</td><td>Lifecycle position and seasonality</td><td>Time zones and week-start conventions drift between systems</td></tr>
+<tr><td>Interactions</td><td>discount × margin; channel × device type</td><td>Combinations a single column cannot express</td><td>Combinatorial explosion — add only the ones domain logic supports</td></tr>
+<tr><td>Categorical encodings</td><td>one-hot for low-cardinality; frequency or target encoding for high-cardinality</td><td>Identity of a category in a numeric column</td><td>Target encoding leaks unless computed out-of-fold</td></tr>
+<tr><td>Missingness indicators</td><td><code>is_null</code> flag alongside the imputed value</td><td>The absence itself is signal</td><td>Imputation statistics must be fit on training data only</td></tr>
+<tr><td>Threshold and binned features</td><td>tenure buckets aligned to a real business rule</td><td>Non-linear cutoffs the business already believes in</td><td>Hand-cut bins can overfit a hunch — validate them</td></tr>
+</tbody>
+</table>
+
+<p>Notice what is missing from that list: exotic mathematical transforms. The high-impact moves are unglamorous — rolling averages over raw timestamps, per-entity aggregates joined back to the row, and interaction terms that encode real-world logic.</p>
+
+<h2>A worked example: from raw row to feature vector</h2>
+
+<p>Suppose each training row is one customer at a weekly snapshot date, and the label is whether they churn within the next 30 days. The snippet below is <strong>illustrative pseudocode in a pandas style — written for this article, not executed</strong>. Every window ends at the row's snapshot, never at &ldquo;today,&rdquo; which is the whole point:</p>
+
+<pre><code># Illustrative pseudocode (pandas style) — one row per customer per snapshot date.
+# Every window ends AT the snapshot, never at "now", so no feature sees the future.
+
+snapshot = df["snapshot_at"]
+
+# 1. Ratios the model would otherwise have to infer from two raw columns
+df["aov_90d"]          = df["revenue_90d"] / df["orders_90d"].clip(lower=1)
+
+# 2. Recency: time since the last meaningful action (a strong decay signal)
+df["days_since_last_order"] = (snapshot - df["last_order_at"]).dt.days
+
+# 3. Velocity: same quantity, comparable windows across customers
+df["orders_per_week"]  = df["orders_30d"] / (30 / 7)   # 30 days is about 4.3 weeks
+
+# 4. Mix and shape of behavior
+df["mobile_share"]     = df["mobile_orders_90d"] / df["orders_90d"].clip(lower=1)
+df["return_rate"]      = df["returned_orders"] / df["orders_90d"].clip(lower=1)
+
+# 5. Missingness made explicit
+df["no_support_email"] = df["support_email"].isna().astype(int)
+
+# 6. Per-entity history joined back — SHIFTED so it only sees PRIOR rows
+df["ltv_prior"] = (df.sort_values("snapshot_at")
+                     .groupby("customer_id")["revenue"]
+                     .transform(lambda s: s.shift(1).expanding().mean()))</code></pre>
+
+<p>Read step 6 closely: an expanding mean computed without the shift includes the row's own revenue, and if revenue correlates with the label, the model learns to peek. The shift is not an optimization detail — it is the difference between a valid feature and a leak. The same discipline appears in our <a href="/post/cohort-analysis-retention-guide">cohort retention walkthrough</a>, where every metric is anchored to what was knowable at that point in time.</p>
+
+<h2>Validation: don't let features leak the future</h2>
+
+<p>The most common way a promising feature set fails in production is that it was never valid in the first place. Random train/test splits leak the future whenever the data has an order: rows from December end up in training and rows from January in testing, so time-dependent features are evaluated on information the model would not have had.</p>
+
+<ul>
+<li><strong>Split by time first.</strong> Train on earlier months, validate on the next block, test on the last block. Only randomize within a time block if the rows are genuinely exchangeable.</li>
+<li><strong>Keep entities together.</strong> If one customer appears in many rows, split at the customer level or the model memorizes identities across the boundary.</li>
+<li><strong>Fit preprocessing on training data only</strong> — imputers, scalers, encoders, vocabularies. Fitting them on the full dataset is leakage too.</li>
+<li><strong>Compute aggregates out-of-fold or shifted.</strong> Any statistic derived from the label (target encoding, churn-history features) must be calculated without the row it decorates.</li>
+<li><strong>Use walk-forward validation for time series.</strong> Rolling-origin folds — train on 1–4, test on 5; train on 1–5, test on 6 — mimic how the model will actually be used.</li>
+<li><strong>Beat a naive baseline.</strong> Predicting &ldquo;the previous period's value&rdquo; or the base rate is a floor; features that do not clear it are decoration.</li>
+<li><strong>Check stability across folds.</strong> A feature that is top-ranked in one month and irrelevant in the next is usually encoding an event, not a relationship.</li>
+</ul>
+
+<h2>Where the trade-offs actually fall</h2>
+
+<p>Choosing between &ldquo;features plus a tree model&rdquo; and &ldquo;a bigger end-to-end model&rdquo; is a comparison with defined criteria, not a team sport:</p>
+
+<table>
+<thead>
+<tr><th>Situation</th><th>Strong starting point</th><th>Why</th></tr>
+</thead>
+<tbody>
+<tr><td>Business table with typed columns, moderate data size</td><td>Gradient boosting (XGBoost, LightGBM, CatBoost or similar) + hand-built features</td><td>Strong defaults for mixed types, robust to scaling, fast to iterate</td></tr>
+<tr><td>Very small dataset (hundreds of rows)</td><td>Regularized linear model, or shallow boosting with strict cross-validation</td><td>Lower variance; complex features overfit quickly</td></tr>
+<tr><td>Text, images, audio or raw sequences alongside the table</td><td>Neural models or pre-trained embeddings feeding the table</td><td>Representation learning cannot be hand-written at that scale</td></tr>
+<tr><td>Plenty of compute and very large row counts</td><td>Neural tabular approaches become worth benchmarking</td><td>Capacity pays off when data supports it — verify on your holdout</td></tr>
+<tr><td>Hard latency, memory or on-device limits</td><td>Small boosted model or linear model; distill if needed</td><td>Predictable cost beats marginal accuracy</td></tr>
+<tr><td>Regulated or explainable-by-contract decisions</td><td>Linear/GBM models with documented features</td><td>Every input is named and auditable; a black-box representation is harder to defend</td></tr>
+<tr><td>The label is essentially a business rule</td><td>Write the rule</td><td>No model needed for deterministic logic</td></tr>
+</tbody>
+</table>
+
+<p>The row on unstructured inputs is the important one. When the signal lives in pixels or prose, hand-engineered tabular features cannot compete with what an end-to-end model extracts — which is exactly why our explainer on <a href="/post/how-large-language-models-actually-work">how large models learn representations</a> is a different conversation from this one.</p>
+
+<h2>Limitations and honest caveats</h2>
+
+<p>This is the section that keeps the headline honest. If someone tells you feature engineering &ldquo;always beats&rdquo; bigger models on tabular data, ask which dataset, which split, and which year:</p>
+
+<ul>
+<li><strong>It is a tendency, not a theorem.</strong> Public benchmarks and practitioner experience suggest the pattern often holds for mid-sized business tables; it proves nothing about your dataset until you run the comparison yourself.</li>
+<li><strong>The gap is not fixed.</strong> Architectures designed specifically for tabular data — including transformer-based approaches — have narrowed the difference on some datasets; as of October 2026 the sensible position is &ldquo;benchmark both,&rdquo; not &ldquo;the old way wins.&rdquo;</li>
+<li><strong>Feature pipelines have a maintenance cost.</strong> Every feature is code that must be recomputed identically at serving time, monitored for drift, and updated when upstream logic changes. A feature is a liability as well as an asset.</li>
+<li><strong>Hand-built features can bake in history.</strong> Features derived from past decisions (pricing, approvals, moderation) can encode the biases of those decisions into the model. Ask what each feature is standing in for.</li>
+<li><strong>Trees are weak on structure.</strong> Spatial relationships, long-range sequences and compositional text are exactly what neural architectures are built to exploit.</li>
+<li><strong>Leakage hides inside clever features.</strong> The more domain-savvy the transformation, the more thoroughly it should be re-checked against the split rule.</li>
+<li><strong>Diminishing returns are real.</strong> After the first dozen high-signal features, hours of feature work often buy less than a better validation setup or a better label definition.</li>
+</ul>
+
+<h2>Common mistakes — and when not to engineer at all</h2>
+
+<ul>
+<li><strong>Engineering features before fixing the label.</strong> A noisy or misaligned target caps everything downstream; define the prediction moment and the label window first.</li>
+<li><strong>Feature explosion without evidence.</strong> Hundreds of columns that never clear the baseline in time-based validation add cost and overfitting risk, not signal.</li>
+<li><strong>One-hot encoding high-cardinality IDs.</strong> Customer or product identifiers create thousands of near-useless columns; use frequency or target encoding, or drop them.</li>
+<li><strong>Ignoring missingness.</strong> Silent mean-imputation destroys the information that &ldquo;this field was never filled in.&rdquo;</li>
+<li><strong>Inconsistent training/serving code.</strong> Features computed by a notebook at training time and a different service at prediction time diverge — build one shared transformation path.</li>
+<li><strong>Skipping temporal alignment.</strong> Backfilled data often carries timestamps of when something was <em>recorded</em>, not when it <em>happened</em>.</li>
+<li><strong>Not worth doing:</strong> when the dataset is tiny relative to the feature count, when a deterministic rule already answers the question, when the raw input is unstructured text or images, or when no feature survives walk-forward validation — in those cases, change the model family, the label, or the data before adding columns.</li>
+</ul>
+
+<h2>A workflow you can repeat</h2>
+
+<ol>
+<li>Define the prediction time and the label window; write both down.</li>
+<li>Create the time-based split <em>before</em> building features, so every transformation is designed under the split rule.</li>
+<li>Build the smallest valid feature set: raw columns plus one feature family.</li>
+<li>Establish a baseline model and a naive baseline; record both.</li>
+<li>Add feature families one at a time and keep only what improves the validation metric consistently across folds.</li>
+<li>Run the leakage checklist: shifted aggregates, out-of-fold encodings, train-only preprocessing.</li>
+<li>Document each feature's source, window and owner, and make the training and serving paths identical.</li>
+<li>Monitor the top features in production — drift in a feature is drift in the model.</li>
+</ol>
+
+<h2>Key takeaways</h2>
+
+<ul>
+<li>Tabular structure is free representation: typed columns let you spend effort on ratios, deltas, windows and interactions instead of learning features from scratch.</li>
+<li>The honest claim is a default, not a law — benchmark a gradient-boosted model with good features before reaching for anything heavier.</li>
+<li>The highest-impact moves are the plain ones: rolling aggregates, per-entity history joined back, and domain-justified interactions.</li>
+<li>Time-based splits and shifted/out-of-fold feature computation are non-negotiable; a leak makes every other decision meaningless.</li>
+<li>Validate against a naive baseline and across folds — features that swing wildly are encoding events, not relationships.</li>
+<li>Feature pipelines carry real maintenance, staleness and bias costs; each one is code you now own.</li>
+<li>Unstructured inputs, very large datasets and specific tabular architectures are the cases where the trade-off legitimately flips.</li>
+</ul>
+
+<p>Your next step: pick one model you already have, rebuild its features using only the families above with strictly past-only windows, and compare it against the current version under a time-based split. The comparison — not the debate — tells you where your data actually sits. When you chart the results, the <a href="/post/data-visualization-principles">honest-chart rules in our visualization guide</a> will keep the improvement from looking bigger on paper than it is in production.</p>

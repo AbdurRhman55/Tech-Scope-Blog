@@ -1,0 +1,197 @@
+<p>Most &ldquo;slow database&rdquo; horror stories end the same way: a missing index. The fix is rarely mysterious — but the reasoning behind it often is, and that is where teams lose days. This guide explains what an index physically is, how the engine walks one, how to choose composite-index column order, and how to prove with <code>EXPLAIN</code> that your change actually helped. When an index lets the engine skip a full table scan, the speedup is usually measured in orders of magnitude — but only when the index matches the query, and indexes are never free.</p>
+
+<h2>The direct answer: what an index buys you</h2>
+
+<p>An index is a separate, sorted structure maintained on one or more columns that lets the storage engine locate matching rows by reading a handful of pages instead of every page in the table. In MySQL with InnoDB, a query that can use a suitable index performs an <strong>index scan</strong>; a query that cannot performs a <strong>full table scan</strong> and examines every row, discarding almost all of them.</p>
+
+<ul>
+<li><strong>Reads:</strong> a filtered query drops from touching the whole table to touching only the matching index entries.</li>
+<li><strong>Sorting:</strong> an index in the right order can satisfy <code>ORDER BY</code> without a separate sort pass (no <code>Using filesort</code> in the plan).</li>
+<li><strong>Joins:</strong> the inner side of a join looks up the outer side's value instead of rescanning.</li>
+<li><strong>Uniqueness:</strong> a unique index enforces a rule the database guarantees for you, faster than a <code>SELECT</code>-then-<code>INSERT</code> check.</li>
+<li><strong>Cost:</strong> every index is extra work on <code>INSERT</code>, <code>UPDATE</code> and <code>DELETE</code>, extra disk, and extra memory in the buffer pool.</li>
+</ul>
+
+<p>If you remember one sentence from this article: <em>index the columns the engine must filter and sort on, then verify the plan with <code>EXPLAIN</code> instead of trusting intuition.</em></p>
+
+<h2>How a B-tree search works</h2>
+
+<p>MySQL's default index structure is a B-tree — more precisely a B+tree: a balanced tree of pages where every leaf page sits at the same depth. Three properties explain almost all of the speedup:</p>
+
+<ul>
+<li><strong>Balanced:</strong> inserts and deletes keep all leaves at the same depth, so a lookup costs the same for a million rows as for a thousand. Depth grows logarithmically, not linearly — the classic <code>O(log n)</code> versus <code>O(n)</code> difference between an index lookup and a full scan.</li>
+<li><strong>Fan-out:</strong> each page holds many keys, so a table with millions of rows is typically resolved in only a few page reads, not thousands.</li>
+<li><strong>Sorted leaves:</strong> leaf pages store entries in key order and are linked together, which is what makes range scans (<code>BETWEEN</code>, <code>&gt;=</code>, <code>ORDER BY</code>) cheap: find the start, then walk the chain.</li>
+</ul>
+
+<figure><img src="/assets/img/diagrams/sql-indexing-practical-guide-btree.svg" alt="Diagram of a B+tree index: a root page points to internal pages, which point to sorted leaf pages linked in key order; a highlighted path shows a lookup reading a few pages, and a note explains that a secondary index leaf stores the indexed key plus the primary key"><figcaption>A secondary-index lookup walks a few pages to a leaf, then fetches the row by primary key.</figcaption></figure>
+
+<p>Two details that matter in practice:</p>
+
+<ul>
+<li>InnoDB's secondary indexes store the <strong>primary key value</strong> in the leaf, not a pointer to the row. That means a secondary-index lookup effectively performs two steps: read the index, then read the clustered index (the table itself, organized as a B+tree on the primary key) to fetch columns that are not in the index.</li>
+<li>An index that already contains every column the query needs is called a <strong>covering index</strong>. The engine can answer straight from the index leaf and skips the second step entirely — the <code>Extra</code> column in the plan then says <code>Using index</code>.</li>
+</ul>
+
+<h2>A worked example, end to end</h2>
+
+<p>Consider a typical blog-style table. The schema below is illustrative but realistic:</p>
+
+<pre><code>CREATE TABLE posts (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  author_id    BIGINT UNSIGNED NOT NULL,
+  status       VARCHAR(20)     NOT NULL,
+  published_at DATETIME        NOT NULL,
+  title        VARCHAR(180)    NOT NULL,
+  body         MEDIUMTEXT      NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- An editorial query that runs on the home page
+SELECT id, title
+FROM posts
+WHERE status = 'published'
+  AND published_at &gt;= '2026-09-01'
+ORDER BY published_at DESC
+LIMIT 20;</code></pre>
+
+<p>With no index beyond the primary key, the engine has one option: read every row of <code>posts</code>, throw away anything that is not published and recent, sort the survivors, and return twenty of them. Now add an index whose column order mirrors the query:</p>
+
+<pre><code>CREATE INDEX idx_posts_status_published_at
+  ON posts (status, published_at);</code></pre>
+
+<h3>Before: full table scan</h3>
+
+<p>Run <code>EXPLAIN</code> before the change. The output below is <strong>example output</strong> — a realistic but illustrative plan; the row counts are optimizer estimates and will differ on your data:</p>
+
+<pre><code>-- Example output (simplified to the columns that matter), before the index
+table | type | possible_keys | key  | key_len | rows  | Extra
+posts | ALL  | NULL          | NULL | NULL    | 48210 | Using where; Using filesort</code></pre>
+
+<p>Read that line: <code>type = ALL</code> means a full scan, <code>key = NULL</code> means no index was usable, and <code>Using filesort</code> means the sort could not come from an index, so every matching row had to be buffered and sorted.</p>
+
+<h3>After: index range scan</h3>
+
+<pre><code>-- Example output (simplified), after CREATE INDEX
+table | type  | possible_keys                | key                           | key_len | rows | Extra
+posts | range | idx_posts_status_published_at | idx_posts_status_published_at | 86      | 312  | Using where</code></pre>
+
+<p>What changed, and why:</p>
+
+<ul>
+<li><code>type</code> moved from <code>ALL</code> to <code>range</code> — a bounded scan over index entries rather than the whole table.</li>
+<li><code>key_len = 86</code> tells you which part of the index is in play: 81 bytes for <code>status</code> (20 × 4 bytes for <code>utf8mb4</code> plus a 1-byte length prefix, since the values need no more than 255 bytes) plus 5 bytes for the <code>datetime</code> column. Your numbers will differ with your column types and nullability — the point is that the length shows <em>both</em> columns of the composite index are in use.</li>
+<li><code>rows</code> dropped from an estimate of tens of thousands to a few hundred. It is an estimate, not a measurement.</li>
+<li><code>Using filesort</code> disappeared: the index already delivers rows in <code>published_at DESC</code> order for a fixed <code>status</code>.</li>
+</ul>
+
+<p>If you want actual execution statistics rather than estimates, MySQL 8.0.18 and later provide <code>EXPLAIN ANALYZE</code>, which runs the statement and reports real timings and row counts. The reference for all plan columns lives in <a href="https://dev.mysql.com/doc/refman/8.4/en/explain.html" rel="external noopener">MySQL's EXPLAIN documentation</a>. You can run the same statement from PHP through PDO as you would any other query — see <a href="https://www.php.net/manual/en/book.pdo.php" rel="external noopener">the PDO manual on php.net</a> — which makes it easy to keep plan checks next to <a href="/post/clean-code-php-patterns">the data-access layer where your queries are built</a>.</p>
+
+<h2>Composite indexes and column order</h2>
+
+<p>A composite index covers several columns, and their order inside the index is not cosmetic. A B+tree on <code>(a, b)</code> is sorted by <code>a</code> first and only <em>then</em> by <code>b</code> — which is why the classic rule holds: an index on <code>(a, b)</code> can serve queries on <code>a</code> alone and on <code>a</code> together with <code>b</code>, but never on <code>b</code> alone. This is the <strong>leftmost-prefix rule</strong>.</p>
+
+<table>
+<thead>
+<tr><th>Query pattern</th><th>Index on <code>(status, published_at)</code> usable?</th><th>Why</th></tr>
+</thead>
+<tbody>
+<tr><td><code>WHERE status = 'published'</code></td><td>Yes</td><td>Leftmost column matches.</td></tr>
+<tr><td><code>WHERE status = 'published' AND published_at &gt;= '2026-09-01'</code></td><td>Yes</td><td>Equality column first, range column second — the ideal arrangement.</td></tr>
+<tr><td><code>WHERE status = 'draft' ORDER BY published_at</code></td><td>Yes</td><td>Rows arrive pre-sorted, so no filesort.</td></tr>
+<tr><td><code>WHERE published_at &gt;= '2026-09-01'</code></td><td>No</td><td>The leading column is missing; the tree is not sorted by <code>published_at</code> globally.</td></tr>
+<tr><td><code>WHERE status = 'published' AND YEAR(published_at) = 2026</code></td><td>No</td><td>A function on the indexed column hides its values from the index. Index the column, or define an expression index, or compute a generated column.</td></tr>
+<tr><td><code>WHERE status LIKE '%pub%'</code></td><td>No (not this index)</td><td>A leading wildcard defeats a prefix search.</td></tr>
+</tbody>
+</table>
+
+<h3>Ordering rules that work in practice</h3>
+
+<ol>
+<li><strong>Equality predicates first</strong> (<code>=</code>, <code>IN</code>, <code>IS NULL</code>). These pin the index down to a fixed value and leave the remaining columns sorted.</li>
+<li><strong>Range predicates next</strong> (<code>&gt;</code>, <code>BETWEEN</code>, <code>LIKE 'x%'</code>). Once a range column is used, columns to its right generally cannot narrow the search further — they can still be filtered after the lookup (index condition pushdown), but they do not skip entries.</li>
+<li><strong>Then the columns used for <code>ORDER BY</code>, <code>GROUP BY</code> or <code>DISTINCT</code></strong>, so the engine inherits the sort order and avoids filesorts and temporary tables.</li>
+<li><strong>Consider covering last.</strong> If adding one more column turns the plan into <code>Using index</code>, the extra column may be worth its write cost.</li>
+</ol>
+
+<p>MySQL 8.0.13 and later can occasionally use an index even when the leftmost column is missing (index skip scan), and <code>EXPLAIN</code> will show it when it happens. Do not design around it — treat it as a bonus, not a plan.</p>
+
+<h2>Which columns to index first</h2>
+
+<p>When you are staring at a table with fifty columns and no secondary indexes, start from the query, not the schema:</p>
+
+<blockquote>Index the WHERE clause first, then JOIN and ORDER BY columns.</blockquote>
+
+<ul>
+<li>Get the actual queries — the slow query log or your APM tool beats guessing.</li>
+<li>Look at the predicates: those columns are your equality-then-range candidates.</li>
+<li>Look at join keys: the inner side of a nested-loop join needs an index to avoid a rescan per outer row.</li>
+<li>Look at sort and group columns: they save filesorts and temporary tables.</li>
+<li>Check cardinality: a column with a handful of distinct values rarely helps <em>alone</em>, but is often excellent as the leading equality column of a composite index.</li>
+</ul>
+
+<p>For the analytics side — <a href="/post/cohort-analysis-retention-guide">cohort retention queries</a> and similar reporting SQL — this usually means an index on the event timestamp plus the entity id, so each cohort slice is a bounded range scan rather than a table-wide aggregation. Likewise, <a href="/post/feature-engineering-tabular-data">per-entity aggregate features</a> are often built by queries that touch the same two or three columns over and over.</p>
+
+<h2>When an index will not help</h2>
+
+<ul>
+<li><strong>Tiny tables.</strong> The planner knows a full scan is cheap when the table fits in a page or two, and will ignore the index anyway.</li>
+<li><strong>Low-cardinality columns on their own.</strong> A boolean or a <code>status</code> column with three values matches too much of the table; combine it with another column instead.</li>
+<li><strong>Queries that return a large share of the table.</strong> If a filter keeps 60% of rows, scanning may genuinely be the faster plan — an index adds random I/O without removing much work.</li>
+<li><strong>Functions on the indexed column.</strong> <code>WHERE DATE(created_at) = '2026-10-01'</code> hides <code>created_at</code> from the index.</li>
+<li><strong>Implicit type conversion.</strong> Comparing a <code>VARCHAR</code> column to a number makes MySQL convert the column values, so the index is bypassed. Keep predicate types aligned with column types.</li>
+<li><strong>Leading-wildcard search.</strong> <code>LIKE '%term'</code> cannot use a B-tree prefix; that is a job for a full-text index.</li>
+<li><strong>The wrong columns, however correct the theory.</strong> If <code>EXPLAIN</code> still shows <code>type = ALL</code> and your key, the index does not match the predicate — re-read the leftmost-prefix rule before reaching for anything exotic.</li>
+</ul>
+
+<h2>When indexes hurt: the write cost</h2>
+
+<p>Every index is a second structure the engine must keep in sync. The costs are real and show up on the write path:</p>
+
+<ul>
+<li><strong>Slower inserts:</strong> each new row must be placed in the correct position of every affected index leaf, not just appended.</li>
+<li><strong>Slower updates:</strong> an <code>UPDATE</code> that changes an indexed column forces index maintenance (and, if the row moves, an insert-and-delete in the clustered index).</li>
+<li><strong>Slower deletes and more purge work</strong> behind the transaction machinery.</li>
+<li><strong>Disk and memory:</strong> indexes consume storage and compete for buffer-pool space that could hold hot data pages.</li>
+<li><strong>Planner overhead:</strong> with many overlapping indexes the optimizer has more choices to evaluate, and occasionally picks a worse one.</li>
+</ul>
+
+<p>The honest trade-off: a read-heavy table with a stable schema loves indexes; a write-heavy table with a dozen rarely-used ones does not. Measure both sides — compare the plan <em>and</em> the insert throughput after the change rather than assuming the index is free.</p>
+
+<h2>Common indexing mistakes</h2>
+
+<ol>
+<li><strong>Indexing every column individually.</strong> A pile of single-column indexes is usually worse than a few composites that match real queries.</li>
+<li><strong>Putting the range column first.</strong> <code>(published_at, status)</code> cannot serve <code>WHERE status = ? AND published_at &gt;= ?</code> efficiently; swap them.</li>
+<li><strong>Duplicating a prefix.</strong> If you have <code>(status, published_at)</code>, a separate <code>(status)</code> index is almost always redundant.</li>
+<li><strong>Indexing by folklore instead of by query.</strong> Design from the statements you actually run.</li>
+<li><strong>Never deleting dead indexes.</strong> Every environment accumulates unused ones; MySQL's <code>sys</code> schema exposes views such as <code>schema_unused_indexes</code> to find them.</li>
+<li><strong>Forgetting join columns.</strong> A join key that is not part of a constraint does not get an automatic index.</li>
+<li><strong>Skipping the verification step.</strong> No before-and-after plan means no evidence that anything improved.</li>
+</ol>
+
+<h2>A workflow you can repeat</h2>
+
+<ol>
+<li>Capture the real statement, including its parameters, from the slow query log or APM.</li>
+<li>Run <code>EXPLAIN</code> and note <code>type</code>, <code>key</code>, <code>rows</code> and <code>Extra</code>.</li>
+<li>Name the index predictably: <code>idx_&lt;table&gt;_&lt;col1&gt;_&lt;col2&gt;</code>.</li>
+<li>Create it on a staging copy or during a maintenance window with <code>CREATE INDEX</code> (in MySQL 8, online DDL keeps the table readable during most index builds).</li>
+<li>Run <code>EXPLAIN</code> again. Expect <code>type</code> to move off <code>ALL</code>, <code>key</code> to be non-NULL, <code>rows</code> to drop, and <code>Using filesort</code> to disappear when sorting was the problem.</li>
+<li>Check the write side: is this table under heavy insert load? Watch write latency after deployment.</li>
+<li>Revisit in a few weeks: unused indexes should be candidates for removal, redundant prefixes for consolidation.</li>
+</ol>
+
+<h2>Key takeaways</h2>
+
+<ul>
+<li>An index converts a full scan into a targeted lookup by giving the engine a sorted structure to walk.</li>
+<li>B+tree lookups stay shallow: balanced depth, high fan-out, and linked leaves make range scans cheap.</li>
+<li>Composite column order is a rule, not a preference: equality first, then range, then sort/group columns.</li>
+<li>Leftmost prefix decides everything — <code>(a, b)</code> serves <code>a</code> and <code>a + b</code>, never <code>b</code> alone.</li>
+<li><code>EXPLAIN</code> is the arbiter: check the plan before and after, and use <code>EXPLAIN ANALYZE</code> on MySQL 8 for actual figures.</li>
+<li>Indexes are not free — they tax every write, consume disk, and can mislead the optimizer if overproduced.</li>
+<li>Small tables, low-cardinality columns, wildcard searches and functions on indexed columns are the classic cases where an index buys nothing.</li>
+</ul>
+
+<p>Start with one query tonight: pull the slowest statement your application runs, run <code>EXPLAIN</code>, add the smallest index that matches its predicate order, and compare the two plans side by side. That single before-and-after pair will teach you more about indexing than any table of rules — and once you can read the plan confidently, the rest of this guide turns from theory into routine. If the plan work uncovers bigger reporting problems, our companion pieces on <a href="/post/cohort-analysis-retention-guide">reading cohort retention tables</a> show how to shape analytical queries from the start.</p>

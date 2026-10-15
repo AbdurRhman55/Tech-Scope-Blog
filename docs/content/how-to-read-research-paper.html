@@ -1,0 +1,170 @@
+<p>Nobody reads a paper front to back. Researchers skim strategically, and so should you. Reading a paper is not an act of completion — it is an act of triage: your goal is to extract the maximum reliable understanding per minute, and to know, quickly, which papers deserve a second hour and which deserve none.</p>
+
+<p><strong>The direct answer: use a three-pass method.</strong> Pass 1 is a five-minute scan to decide if the paper is relevant at all. Pass 2 is roughly an hour of reading without proofs, focused on claims, methods and whether the evidence supports the claims. Pass 3 is a deep dive — re-deriving results and checking assumptions — reserved only for papers you will build on. Each pass has a fixed goal and a fixed output, so you always know when you are done.</p>
+
+<h2>The three passes at a glance</h2>
+
+<table>
+<thead>
+<tr><th>Pass</th><th>Time budget</th><th>Goal</th><th>Output you should hold</th></tr>
+</thead>
+<tbody>
+<tr><td>Pass 1 — scan</td><td>About five minutes</td><td>Decide relevance and orientation</td><td>Three-to-five-sentence summary; keep, skim later, or discard</td></tr>
+<tr><td>Pass 2 — critical read</td><td>About an hour</td><td>Understand the claims and judge the evidence</td><td>Claim list, method notes, a verdict on each claim</td></tr>
+<tr><td>Pass 3 — deep dive</td><td>Several hours, only if justified</td><td>Verify and internalise what you will depend on</td><td>Re-derived results, checked assumptions, your own critique</td></tr>
+</tbody>
+</table>
+
+<p>The time budgets are conventions, not laws — but they are useful because they force a decision. If a paper has not earned your second pass within five minutes, it goes back to the pile with a note about why.</p>
+
+<figure><img src="/assets/img/diagrams/how-to-read-research-paper-three-pass-loop.svg" alt="Circular diagram: pass 1 scans for overview and produces a three-line summary, pass 2 reads claims against evidence and produces a claim list and verdict, pass 3 re-derives and reproduces only for papers you will build on, with a dashed exit path showing that irrelevant papers stop after pass 1"><figcaption>The loop only continues when each pass justifies the next; the dashed exit is used more often than the loop.</figcaption></figure>
+
+<h2>Before pass 1: decide whether to read at all</h2>
+
+<p>Most papers you encounter should not be read at all. They should be <em>triaged</em>. Before you open the file, ask:</p>
+
+<ul>
+<li><strong>Why did this paper reach me?</strong> A citation from a colleague, a reference in a paper you already trust, a search for a specific technique — each implies a different reading depth.</li>
+<li><strong>What question am I trying to answer?</strong> If you cannot state it in one sentence, you are collecting PDFs, not reading papers.</li>
+<li><strong>Is this the right venue and vintage for a first look?</strong> A paper's context — where it was published, when, and what problem class it belongs to — changes how much trust to place in its framing.</li>
+<li><strong>Can I get the answer faster elsewhere?</strong> Sometimes a specification, documentation page or textbook section answers your actual question; papers answer research questions.</li>
+</ul>
+
+<p>Write down the purpose before you start. A reading session without a stated purpose expands to fill all available time and produces nothing you can find again in three weeks.</p>
+
+<h2>Pass 1 — the five-minute scan</h2>
+
+<p>The original instruction still holds: title, abstract, section headings, figures, conclusion. What changes now is that you read them <strong>with a pencil</strong>, extracting specific items rather than impressions.</p>
+
+<p>What to extract in pass 1:</p>
+
+<ul>
+<li><strong>Category and problem.</strong> What kind of contribution is this — a new method, a measurement study, a position argument, a system description?</li>
+<li><strong>The central claim</strong>, in your own words, one sentence. If the abstract does not yield one, that itself is a finding.</li>
+<li><strong>The structure map.</strong> Skim the section headings and ask what each section is doing. A paper you can outline from its headings is a paper you can navigate.</li>
+<li><strong>Figures and tables first.</strong> In many fields, the visuals carry the argument. Read captions; a good figure often tells you the result without the prose.</li>
+<li><strong>The verdict paragraph.</strong> Does the conclusion claim more than the abstract? A gap between the two is worth noting early.</li>
+<li><strong>Reference density.</strong> Do you recognise the lineage it cites? That tells you what background you would need for pass 2.</li>
+</ul>
+
+<p><strong>Decision at the end of pass 1:</strong> discard with a one-line reason, park for later, or commit to pass 2. The one-line reason matters — "parked: methods not relevant, but the related-work list is useful" prevents you from re-reading it from scratch next month.</p>
+
+<h2>Pass 2 — the critical hour</h2>
+
+<p>In pass 2 you read without proofs and derivations, following the argument rather than checking it. The goal is to answer two questions: <em>what exactly is claimed?</em> and <em>does the evidence presented actually support it?</em></p>
+
+<p>What to extract in pass 2:</p>
+
+<ul>
+<li><strong>The full claim list.</strong> Number every distinct claim the paper makes. Authors often compress several claims into one sentence; separating them is most of the analytical work.</li>
+<li><strong>The method skeleton.</strong> What was done, to what, measured how, compared against what baseline? Sketch it as five bullet points, not paragraphs.</li>
+<li><strong>Assumptions — stated and unstated.</strong> What must be true for the results to hold: data distribution, hardware, workload, population, time period?</li>
+<li><strong>Evidence-to-claim mapping.</strong> For each claim, mark which figure, table or experiment supports it. Claims with no mapped evidence are now flagged.</li>
+<li><strong>Limitations the authors admit</strong> — and one or two they do not. Reading limitations section first is a legitimate shortcut: it is usually the most honest part of a paper.</li>
+<li><strong>Your questions.</strong> Every "why didn't they…?" and "does this generalise to…?" goes into the margin. These become pass 3 candidates or research ideas.</li>
+</ul>
+
+<p>Skip the proofs on purpose. If a key derivation matters and you do not follow it, note that as a pass 3 item rather than derailing the whole hour. Finishing pass 2 with a written paragraph of judgement — "the evidence supports claim 1, weakly supports claim 2, and does not address claim 3" — is worth more than having read every line.</p>
+
+<blockquote>Reading everything deeply is not diligence — it is a recipe for never finishing.</blockquote>
+
+<h2>Pass 3 — the deep dive</h2>
+
+<p>Pass 3 is for papers you will build on: the one your own work depends on, the method you plan to implement, the result you intend to cite in a paper of your own. Most papers should never reach this stage.</p>
+
+<p>What to extract in pass 3:</p>
+
+<ul>
+<li><strong>Re-derived results.</strong> Work through the key derivation or calculation yourself on paper. Where your algebra and theirs diverge is where understanding lives.</li>
+<li><strong>Checked assumptions.</strong> Interrogate each assumption against your own context. "Valid for images of this size" is a fact you need before you reuse the method.</li>
+<li><strong>A partial reproduction.</strong> If the paper ships code or pseudocode, implement the smallest piece that would falsify the central claim if it failed. This is where our companion guide on <a href="/post/reproducible-research-environment">building a reproducible research environment</a> becomes practical: an environment you cannot rerun is an environment where "let's check their result" dies at the first dependency error.</li>
+<li><strong>Boundary cases.</strong> Where should the method break? Authors rarely stress-test their own framing; doing it for them tells you whether it will hold in your setting.</li>
+<li><strong>What you would do differently.</strong> One paragraph of alternative design. This is the seed of future work, and the surest sign you have actually understood the paper.</li>
+<li><strong>Citation-quality judgement.</strong> Decide, explicitly, how you are allowed to use this paper — as established fact, as one datapoint, or as a claim you have verified yourself.</li>
+</ul>
+
+<p>Time-box pass 3 ruthlessly. A week in, if you are re-reading the introduction instead of re-deriving results, you are procrastinating inside a PDF.</p>
+
+<h2>A worked example (invented for this article)</h2>
+
+<p>To make the mechanics concrete, here is the method applied to a <strong>hypothetical paper invented purely for illustration</strong>: a fictional systems paper titled <em>"Bandwidth-Aware Caching for Tiered Storage"</em>. No such study is being cited; every detail below exists to show what an extraction looks like.</p>
+
+<h3>Pass 1 — five minutes, out loud</h3>
+<ul>
+<li><strong>Category:</strong> systems method paper with a simulation-based evaluation.</li>
+<li><strong>Central claim (one sentence):</strong> an eviction policy that prices objects by transfer bandwidth keeps hit latency lower than LRU-style policies under mixed hot/cold workloads.</li>
+<li><strong>Structure:</strong> intro → design → simulator → workload description → results → related work. The workload section is where I will need to look hardest.</li>
+<li><strong>Visuals:</strong> three latency curves and one capacity chart, all labelled with the same two baselines. The captions alone show the paper's whole argument shape.</li>
+<li><strong>Verdict:</strong> relevant — proceed to pass 2, park the related-work list for later.</li>
+</ul>
+
+<h3>Pass 2 — one hour, no derivations</h3>
+<ul>
+<li><strong>Claim 1:</strong> lower p95 latency than LRU on the mixed workload — supported by figure 2.</li>
+<li><strong>Claim 2:</strong> gains persist as cache capacity shrinks — supported by figure 3, but only for one capacity range.</li>
+<li><strong>Claim 3 (implicit):</strong> the policy is practical to deploy — <em>no direct evidence</em>: no implementation beyond the simulator, no cost of the policy's own bookkeeping. Flagged.</li>
+<li><strong>Method skeleton:</strong> discrete-event simulator, two synthetic workloads plus one trace, three policies compared, single run per configuration.</li>
+<li><strong>Assumptions noted:</strong> object sizes drawn from a fixed distribution; no request-correlation modelling; single-node storage.</li>
+<li><strong>Written verdict:</strong> claims 1 and 2 supported within the simulated setting; claim 3 is an extrapolation. Useful, with conditions.</li>
+</ul>
+
+<h3>Pass 3 — only because our hypothetical project depends on it</h3>
+<ul>
+<li>Re-derive the eviction score for one toy trace and confirm it orders objects as the design section says.</li>
+<li>Check whether the workload assumptions match our real access pattern — if they do not, claims 1 and 2 need re-testing locally before we cite them.</li>
+<li>Reproduce the smallest figure: one policy, one workload, ten-minute run, in a pinned environment so the result is repeatable.</li>
+<li>Note what we would do differently: report the bookkeeping overhead the paper omits.</li>
+</ul>
+
+<p>Notice what did not happen: no line-by-line reading, no proof-checking in pass 2, no reproduction of the full evaluation. The output is a judgement and an evidence trail, not a finished book.</p>
+
+<h2>Notes worth keeping (and how to hook them up)</h2>
+
+<p>Reading without writing is reading you will repeat. Keep the notes small, structured and findable:</p>
+
+<ul>
+<li><strong>A citation header:</strong> authors, title, year, venue, and where you found it — enough to relocate the PDF without searching.</li>
+<li><strong>The one-sentence claim</strong> from pass 1. Always in your own words; copying the abstract's phrasing proves nothing.</li>
+<li><strong>The claim/evidence table</strong> from pass 2 — one row per claim, one column for its support.</li>
+<li><strong>Open questions</strong> from both passes, so a future reading session starts where the last one stopped.</li>
+<li><strong>Reuse rights:</strong> established / one datapoint / verified myself — the judgement you will need a year from now when a reviewer asks where a claim came from.</li>
+</ul>
+
+<p>Where those notes live matters less than that they are linked to something you actually revisit. If your reading feeds a personal knowledge system, file the note where the links will be useful — see <a href="/post/zettelkasten-note-taking-simple">note-taking built on connections rather than folders</a>. And if you plan to use the findings as study material rather than reference material, the <a href="/post/evidence-based-learning-techniques">evidence-based techniques for remembering what you learn</a> — spaced retrieval over re-reading — apply to papers too: a claim you summarised once and never revisited decays like any other memorised fact.</p>
+
+<h2>Reading papers you cannot fully follow</h2>
+
+<p>You will hit papers where the notation, the subfield or the statistics are beyond you. Honest options, roughly in order:</p>
+
+<ul>
+<li><strong>Read around, not through.</strong> Pull the two or three references that carry the background and read their abstracts first; the gap often closes in one step.</li>
+<li><strong>Follow a single thread.</strong> You do not need every section to answer one question. Extracting "how do they define the baseline" from a paper you only half understand is a legitimate result.</li>
+<li><strong>Use the supplementary material.</strong> Appendices, glossaries and released code frequently explain more clearly than the prose.</li>
+<li><strong>Ask.</strong> A colleague, a supervisor, the authors themselves — a short, specific question ("in section 4, is X assumed or derived?") gets short answers.</li>
+<li><strong>Say so.</strong> Note "understood claims and method, skipped the proof of theorem 2" rather than pretending to a comprehension you do not have. Faked understanding compounds worse than recorded gaps.</li>
+</ul>
+
+<h2>Common mistakes</h2>
+
+<ul>
+<li><strong>Reading linearly, every time.</strong> Front-to-back is a strategy for exactly one situation: a paper you already decided deserves pass 3.</li>
+<li><strong>Highlighting instead of writing.</strong> A page of yellow proves attention, not comprehension. Two sentences of your own words prove comprehension.</li>
+<li><strong>No stated purpose.</strong> "I should read this" is not a question. Questions end; vague obligations do not.</li>
+<li><strong>Skipping the methods section.</strong> Claims without methods are marketing. In pass 2, methods is where you spend the hour.</li>
+<li><strong>Trusting the abstract as summary.</strong> Abstracts are written to survive review; conclusions sometimes admit what abstracts omit.</li>
+<li><strong>Letting the pile grow unchecked.</strong> A to-read list without triage dates is a guilt inventory. Re-run pass 1 on anything older than a few weeks — most of it discards itself.</li>
+<li><strong>Skipping the verdict.</strong> If you finished a pass and did not write what you now believe, the pass did not happen.</li>
+</ul>
+
+<h2>Key takeaways</h2>
+
+<ul>
+<li>Three passes, three purposes: scan to decide, read to judge, dive to verify — and a stopping rule for each.</li>
+<li>Every pass produces an artifact: a summary, a claim/evidence table, or a re-derived result. Reading without an artifact is skimming with extra steps.</li>
+<li>Most papers stop after pass 1 or 2. Depth is a budget, not a virtue.</li>
+<li>Evidence-to-claim mapping is the core critical skill — it turns "this seems solid" into a judgement you can defend.</li>
+<li>Notes are the return on your investment; unlinked highlights are a highlighter's diary.</li>
+<li>Premature pass 3 is procrastination in disguise; never reaching pass 3 on work you depend on is how errors propagate.</li>
+</ul>
+
+<p>Your next step: take the paper at the top of your reading pile and run a strictly timed pass 1 — five minutes, one written paragraph, one keep/park/discard decision. Tomorrow, give the keepers an hour of pass 2 with a claim list. Once a paper survives both, that is your signal to schedule a pass 3, with a pinned environment ready for whatever you decide to reproduce.</p>

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" font-family="Manrope, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4fd8"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#e8402a"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <!-- Funnel: inventory -->
+  <rect x="110" y="40" width="400" height="60" rx="12" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <text x="310" y="66" text-anchor="middle" font-size="16" fill="#14161c">Everything you could sell</text>
+  <text x="310" y="88" text-anchor="middle" font-size="15" fill="#5a6070">skills, tools, past work</text>
+  <line x1="310" y1="100" x2="310" y2="136" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Filter 1 -->
+  <rect x="140" y="140" width="340" height="60" rx="12" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="310" y="166" text-anchor="middle" font-size="16" fill="#14161c">Filter 1 — Demand</text>
+  <text x="310" y="188" text-anchor="middle" font-size="15" fill="#5a6070">costly, recurring problem?</text>
+  <line x1="310" y1="200" x2="310" y2="236" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Filter 2 -->
+  <rect x="170" y="240" width="280" height="60" rx="12" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="310" y="266" text-anchor="middle" font-size="16" fill="#14161c">Filter 2 — Access</text>
+  <text x="310" y="288" text-anchor="middle" font-size="15" fill="#5a6070">can you reach the buyers?</text>
+  <line x1="310" y1="300" x2="310" y2="336" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Filter 3 -->
+  <rect x="200" y="340" width="220" height="60" rx="12" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="310" y="366" text-anchor="middle" font-size="16" fill="#14161c">Filter 3 — Fit</text>
+  <text x="310" y="388" text-anchor="middle" font-size="15" fill="#5a6070">skills, interest, proof</text>
+  <line x1="310" y1="400" x2="310" y2="436" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Wedge -->
+  <rect x="180" y="440" width="260" height="64" rx="12" fill="#ffffff" stroke="#e8402a" stroke-width="2.5"/>
+  <text x="310" y="466" text-anchor="middle" font-size="16" fill="#14161c">Your wedge</text>
+  <text x="310" y="489" text-anchor="middle" font-size="16" fill="#14161c">industry × outcome</text>
+
+  <!-- Proof loop, right column -->
+  <rect x="610" y="140" width="250" height="64" rx="12" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <text x="735" y="166" text-anchor="middle" font-size="15" fill="#14161c">Case studies stack</text>
+  <text x="735" y="188" text-anchor="middle" font-size="15" fill="#14161c">in one niche</text>
+
+  <rect x="610" y="250" width="250" height="64" rx="12" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <text x="735" y="276" text-anchor="middle" font-size="15" fill="#14161c">Each project makes</text>
+  <text x="735" y="298" text-anchor="middle" font-size="15" fill="#14161c">the next pitch shorter</text>
+
+  <rect x="610" y="360" width="250" height="64" rx="12" fill="#ffffff" stroke="#14161c" stroke-width="2"/>
+  <text x="735" y="386" text-anchor="middle" font-size="15" fill="#14161c">Referrals arrive</text>
+  <text x="735" y="408" text-anchor="middle" font-size="15" fill="#14161c">already qualified</text>
+
+  <line x1="735" y1="360" x2="735" y2="318" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="735" y1="250" x2="735" y2="208" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="755" y="238" font-size="15" fill="#5a6070">compounds</text>
+
+  <!-- Wedge feeds the loop -->
+  <path d="M 440 472 L 530 472 L 530 392 L 606 392" stroke="#e8402a" stroke-width="2.5" fill="none" marker-end="url(#arrowRed)"/>
+  <text x="528" y="500" text-anchor="middle" font-size="15" fill="#5a6070">every project adds proof</text>
+</svg>

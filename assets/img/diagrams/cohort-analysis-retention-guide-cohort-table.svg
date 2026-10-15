@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" role="img" aria-label="Illustrative cohort retention grid with signup cohorts as rows and weeks since signup as columns">
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="40" y="38" font-family="Manrope, Arial, sans-serif" font-size="21" font-weight="700" fill="#14161c">Illustrative cohort grid — % of each signup cohort active</text>
+  <text x="170" y="70" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Weeks since signup (columns) &#8594;</text>
+
+  <!-- column headers -->
+  <text x="158" y="97" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Signup cohort (n)</text>
+  <text x="217.5" y="97" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">W0</text>
+  <text x="312.5" y="97" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">W1</text>
+  <text x="407.5" y="97" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">W2</text>
+  <text x="502.5" y="97" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">W3</text>
+  <text x="597.5" y="97" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">W4</text>
+  <text x="692.5" y="97" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">W5</text>
+  <text x="787.5" y="97" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">W6</text>
+
+  <!-- row 1: Jan 5-11, n = 1,000 -->
+  <text x="158" y="131" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" font-weight="700" fill="#14161c">Jan 5&#8211;11</text>
+  <text x="158" y="150" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">n = 1,000</text>
+  <rect x="170" y="105" width="95" height="54" fill="#1f4fd8" fill-opacity="0.45" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="217.5" y="139" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">100</text>
+  <rect x="265" y="105" width="95" height="54" fill="#1f4fd8" fill-opacity="0.288" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="312.5" y="139" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">64</text>
+  <rect x="360" y="105" width="95" height="54" fill="#1f4fd8" fill-opacity="0.229" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="407.5" y="139" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">51</text>
+  <rect x="455" y="105" width="95" height="54" fill="#1f4fd8" fill-opacity="0.205" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="502.5" y="139" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">45.5</text>
+  <rect x="550" y="105" width="95" height="54" fill="#1f4fd8" fill-opacity="0.194" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="597.5" y="139" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">43</text>
+  <rect x="645" y="105" width="95" height="54" fill="#1f4fd8" fill-opacity="0.187" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="692.5" y="139" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">41.5</text>
+  <rect x="740" y="105" width="95" height="54" fill="#1f4fd8" fill-opacity="0.184" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="787.5" y="139" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">40.8</text>
+
+  <!-- row 2: Jan 12-18, n = 1,200 -->
+  <text x="158" y="185" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" font-weight="700" fill="#14161c">Jan 12&#8211;18</text>
+  <text x="158" y="204" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">n = 1,200</text>
+  <rect x="170" y="159" width="95" height="54" fill="#1f4fd8" fill-opacity="0.45" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="217.5" y="193" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">100</text>
+  <rect x="265" y="159" width="95" height="54" fill="#1f4fd8" fill-opacity="0.288" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="312.5" y="193" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">64</text>
+  <rect x="360" y="159" width="95" height="54" fill="#1f4fd8" fill-opacity="0.234" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="407.5" y="193" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">52</text>
+  <rect x="455" y="159" width="95" height="54" fill="#1f4fd8" fill-opacity="0.212" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="502.5" y="193" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">47</text>
+  <rect x="550" y="159" width="95" height="54" fill="#1f4fd8" fill-opacity="0.198" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="597.5" y="193" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">44</text>
+  <rect x="645" y="159" width="95" height="54" fill="#1f4fd8" fill-opacity="0.194" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="692.5" y="193" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">43</text>
+  <rect x="740" y="159" width="95" height="54" fill="#1f4fd8" fill-opacity="0.189" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="787.5" y="193" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">42</text>
+
+  <!-- row 3: Jan 19-25, n = 1,080 -->
+  <text x="158" y="239" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" font-weight="700" fill="#14161c">Jan 19&#8211;25</text>
+  <text x="158" y="258" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">n = 1,080</text>
+  <rect x="170" y="213" width="95" height="54" fill="#1f4fd8" fill-opacity="0.45" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="217.5" y="247" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">100</text>
+  <rect x="265" y="213" width="95" height="54" fill="#1f4fd8" fill-opacity="0.275" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="312.5" y="247" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">61</text>
+  <rect x="360" y="213" width="95" height="54" fill="#1f4fd8" fill-opacity="0.216" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="407.5" y="247" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">48</text>
+  <rect x="455" y="213" width="95" height="54" fill="#1f4fd8" fill-opacity="0.194" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="502.5" y="247" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">43</text>
+  <rect x="550" y="213" width="95" height="54" fill="#1f4fd8" fill-opacity="0.18" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="597.5" y="247" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">40</text>
+  <rect x="645" y="213" width="95" height="54" fill="#1f4fd8" fill-opacity="0.176" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="692.5" y="247" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">39</text>
+  <rect x="740" y="213" width="95" height="54" fill="#1f4fd8" fill-opacity="0.171" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="787.5" y="247" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">38</text>
+
+  <!-- row 4: Jan 26 - Feb 1, n = 1,150 -->
+  <text x="158" y="293" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" font-weight="700" fill="#14161c">Jan 26&#8211;Feb 1</text>
+  <text x="158" y="312" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">n = 1,150</text>
+  <rect x="170" y="267" width="95" height="54" fill="#1f4fd8" fill-opacity="0.45" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="217.5" y="301" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">100</text>
+  <rect x="265" y="267" width="95" height="54" fill="#1f4fd8" fill-opacity="0.324" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="312.5" y="301" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">72</text>
+  <rect x="360" y="267" width="95" height="54" fill="#1f4fd8" fill-opacity="0.275" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="407.5" y="301" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">61</text>
+  <rect x="455" y="267" width="95" height="54" fill="#1f4fd8" fill-opacity="0.248" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="502.5" y="301" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">55</text>
+  <rect x="550" y="267" width="95" height="54" fill="#1f4fd8" fill-opacity="0.229" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="597.5" y="301" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">51</text>
+  <rect x="645" y="267" width="95" height="54" fill="#1f4fd8" fill-opacity="0.221" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="692.5" y="301" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">49</text>
+  <rect x="740" y="267" width="95" height="54" fill="#1f4fd8" fill-opacity="0.216" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="787.5" y="301" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">48</text>
+
+  <!-- row 5: Feb 2-8, n = 990, partial -->
+  <text x="158" y="347" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" font-weight="700" fill="#14161c">Feb 2&#8211;8</text>
+  <text x="158" y="366" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="13" fill="#5a6070">n = 990</text>
+  <rect x="170" y="321" width="95" height="54" fill="#1f4fd8" fill-opacity="0.45" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="217.5" y="355" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">100</text>
+  <rect x="265" y="321" width="95" height="54" fill="#1f4fd8" fill-opacity="0.315" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="312.5" y="355" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#14161c">70</text>
+  <rect x="360" y="321" width="95" height="54" fill="#eceae4" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="407.5" y="355" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#5a6070">&#8212;</text>
+  <rect x="455" y="321" width="95" height="54" fill="#eceae4" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="502.5" y="355" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#5a6070">&#8212;</text>
+  <rect x="550" y="321" width="95" height="54" fill="#eceae4" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="597.5" y="355" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#5a6070">&#8212;</text>
+  <rect x="645" y="321" width="95" height="54" fill="#eceae4" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="692.5" y="355" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#5a6070">&#8212;</text>
+  <rect x="740" y="321" width="95" height="54" fill="#eceae4" stroke="#f7f6f2" stroke-width="2"/>
+  <text x="787.5" y="355" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#5a6070">&#8212;</text>
+
+  <text x="40" y="406" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#e8402a">Row 4 holds 51% at W4 against row 1's 43% — compare the same column, never the totals.</text>
+  <text x="40" y="430" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#14161c">Every cell is one division: active users in that period &#247; that row's cohort size.</text>
+
+  <rect x="40" y="446" width="26" height="18" fill="#1f4fd8" fill-opacity="0.45" stroke="#d8d6cf" stroke-width="1"/>
+  <text x="76" y="460" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">darker = higher retention</text>
+  <rect x="330" y="446" width="26" height="18" fill="#eceae4" stroke="#d8d6cf" stroke-width="1"/>
+  <text x="366" y="460" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">&#8212; = period the cohort has not reached yet (never read as zero)</text>
+
+  <text x="40" y="492" font-family="Manrope, Arial, sans-serif" font-size="14" fill="#5a6070">Rows are fixed signup cohorts; columns are time since each cohort's own signup. Sample numbers invented for illustration.</text>
+</svg>

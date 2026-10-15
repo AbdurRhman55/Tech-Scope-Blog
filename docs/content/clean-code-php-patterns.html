@@ -1,0 +1,293 @@
+<p>Clean code is not about cleverness; it is about the next developer — who is usually you, six months from now, with no memory of this. This article collects the PHP habits that keep a codebase maintainable when the deadline has passed and someone has to add one more feature without breaking three others.</p>
+<p><strong>The direct answer:</strong> a maintainable PHP codebase is the product of four small disciplines — <strong>name things after intent</strong>, <strong>keep every function to one job</strong>, <strong>never trust input</strong>, and <strong>cover behaviour with tests that survive refactoring</strong>. Patterns help, but they are tools for those disciplines, not a substitute for them. What follows is a before/after for each discipline, the security baseline every PHP application needs, a testing habit that pays for itself, and an honest list of when these habits are not worth applying.</p>
+
+<h2>Name things after intent</h2>
+<p><code>$data</code> tells you nothing. <code>$publishedPosts</code> tells you everything. Names are documentation that cannot go stale, because the compiler enforces them: rename a variable and every use of it changes with it, while a comment quietly keeps describing yesterday's design.</p>
+
+<p><strong>Before</strong> — the reader has to open three files to learn what <code>$data</code> holds and what <code>st</code> means:</p>
+<pre><code>$data = getStuff($id);
+if ($data['st'] == 1) {
+    echo $data['t'];
+}</code></pre>
+
+<p><strong>After</strong> — the domain concept is in the name, and the branch reads like a sentence:</p>
+<pre><code>$post = $posts-&gt;find($id);
+if ($post-&gt;isPublished()) {
+    echo $post-&gt;title();
+}</code></pre>
+
+<ul>
+<li>Name functions after what they return or do, not how they do it: <code>paidOrders()</code>, not <code>loopAndFilter()</code>.</li>
+<li>Name booleans so they read as questions: <code>isPublished()</code>, <code>hasValidLicense()</code>.</li>
+<li>Eliminate abbreviation: <code>$cnt</code>, <code>$mgr</code>, <code>$tmp</code> cost more characters to decode than they save to type.</li>
+<li>One concept, one name. If the same thing is <code>$user</code>, <code>$account</code> and <code>$actor</code> across files, pick one and use it everywhere.</li>
+<li>Delete <code>$data2</code>, <code>$resultOld</code>, <code>$newFlag2</code>. If something needs a suffix, it is a different thing — or dead code.</li>
+</ul>
+
+<h2>Small functions, single jobs</h2>
+<p>If a function needs a comment to explain its steps, split it. Each function should do one thing and do it well — and "one thing" means one reason to change, not one line of code.</p>
+
+<p><strong>Before</strong> — filtering, sorting, formatting and output are four different reasons to change, welded into one body:</p>
+<pre><code>function summaryReport(array $orders): void
+{
+    $paid = array_filter($orders, fn (array $o) =&gt; $o['status'] === 'paid');
+    usort($paid, fn (array $a, array $b) =&gt; $b['total'] &lt;=&gt; $a['total']);
+
+    foreach ($paid as $order) {
+        echo $order['customer'] . ': ' . $order['total'] . PHP_EOL;
+    }
+}</code></pre>
+
+<p><strong>After</strong> — each step is named, testable on its own, and reusable by the next report:</p>
+<pre><code>function paidOrders(array $orders): array
+{
+    return array_values(array_filter($orders, fn (array $o) =&gt; $o['status'] === 'paid'));
+}
+
+function byTotalDescending(array $orders): array
+{
+    usort($orders, fn (array $a, array $b) =&gt; $b['total'] &lt;=&gt; $a['total']);
+    return $orders;
+}
+
+function summaryLine(array $order): string
+{
+    return $order['customer'] . ': ' . $order['total'];
+}</code></pre>
+
+<ul>
+<li>A useful size test: you can say what the function does in one sentence without using "and then".</li>
+<li>Parameters should be inputs the function cannot derive itself. Four or more of them usually means a small value object is missing.</li>
+<li>Pure functions — in, compute, return — are trivial to test. Push printing, database writes and clock reads to the edges.</li>
+<li>Small does not mean one-liners everywhere. A 15-line function with one job is better than five lines that each need a paragraph of context.</li>
+</ul>
+
+<h2>Guard clauses instead of nested conditionals</h2>
+<p>Deep nesting hides the error. Reviewers skim, and the branch they skim is the one that ships the bug. Return early for the unhappy paths, and leave the happy path flat at the top level of the function.</p>
+
+<p><strong>Before</strong> — the important line sits three levels deep, and the indentation has to be tracked mentally:</p>
+<pre><code>function approveInvoice(Invoice $invoice, User $user): void
+{
+    if ($user-&gt;isActive()) {
+        if ($invoice-&gt;isWithinBudget()) {
+            if ($invoice-&gt;isApproved() === false) {
+                $invoice-&gt;approve();
+            }
+        }
+    }
+}</code></pre>
+
+<p><strong>After</strong> — each refusal is stated once, and the action stands alone:</p>
+<pre><code>function approveInvoice(Invoice $invoice, User $user): void
+{
+    if (!$user-&gt;isActive()) {
+        return;
+    }
+    if ($invoice-&gt;isWithinBudget() === false) {
+        return;
+    }
+    if ($invoice-&gt;isApproved()) {
+        return;
+    }
+
+    $invoice-&gt;approve();
+}</code></pre>
+
+<p>The behaviour is identical; the reading cost is not. When you later add a fourth condition — "the invoice is not older than 30 days" — you append another three-line guard instead of another nesting level.</p>
+
+<h2>Make invalid states hard to represent</h2>
+<p>Most runtime surprises in PHP come from values that were never validated at the boundary: a string where an int was promised, a percentage of 150, a date that is "null but maybe empty". Modern PHP gives you cheap ways to make illegal states unrepresentable — type declarations, constructor guards and enums.</p>
+
+<pre><code>final class Discount
+{
+    public function __construct(
+        private string $code,
+        private int $percent,
+    ) {
+        if ($percent &lt; 0 || $percent &gt; 100) {
+            throw new \InvalidArgumentException('percent must be between 0 and 100');
+        }
+    }
+
+    public function apply(float $amount): float
+    {
+        return round($amount * (100 - $this-&gt;percent) / 100, 2);
+    }
+}</code></pre>
+
+<ul>
+<li>Declare parameter and return types on every function you write; the engine then rejects wrong values at the call site instead of deep inside.</li>
+<li>Validate in the constructor, once, where the object is born — not in every method that happens to read the field.</li>
+<li>Use <code>enum</code> (PHP 8.1+) for closed sets such as order status instead of a free-form string that accepts <code>'shippedd'</code>.</li>
+<li>Prefer throwing over returning <code>null</code> for "this should never fail" invariants; prefer returning over throwing for expected, caller-handled outcomes.</li>
+<li>Do the opposite for external data: arrays from JSON, <code>$_GET</code> and database rows arrive untyped, so convert them into typed objects at the edge.</li>
+</ul>
+
+<h2>Security baseline: never trust input</h2>
+<p>Use PDO prepared statements for queries, escape output with <code>htmlspecialchars()</code>, and validate on the server — always. Client-side validation is a courtesy to the user, never a control. Two lines of discipline here prevent the two most common PHP vulnerabilities: injection and cross-site scripting.</p>
+
+<pre><code>$stmt = $pdo-&gt;prepare("SELECT * FROM posts WHERE slug = ?");
+$stmt-&gt;execute([$slug]);</code></pre>
+
+<p><strong>Before</strong> — the request array is concatenated straight into SQL and printed straight into HTML:</p>
+<pre><code>$sql = "SELECT * FROM posts WHERE slug = '" . $_GET['slug'] . "'";
+$rows = $pdo-&gt;query($sql)-&gt;fetchAll();
+
+echo '&lt;h1&gt;' . $_GET['title'] . '&lt;/h1&gt;';</code></pre>
+
+<p><strong>After</strong> — the query is parameterized, the value is checked against an allowlist, and output is escaped for its context:</p>
+<pre><code>$slug = $_GET['slug'] ?? '';
+if (preg_match('/^[a-z0-9-]{1,80}$/', $slug) !== 1) {
+    http_response_code(422);
+    exit;
+}
+
+$stmt = $pdo-&gt;prepare('SELECT title, body FROM posts WHERE slug = :slug');
+$stmt-&gt;execute(['slug' =&gt; $slug]);
+$post = $stmt-&gt;fetch();
+
+if ($post === false) {
+    http_response_code(404);
+    exit;
+}
+
+echo '&lt;h1&gt;' . htmlspecialchars($post['title'], ENT_QUOTES, 'UTF-8') . '&lt;/h1&gt;';</code></pre>
+
+<p>Notice the column list in the "after" query: <code>SELECT *</code> is a habit worth dropping on its own — fetching columns you never read costs memory and hides schema changes from the reader. For the other side of the query — how statements and indexes interact once they are parameterized — our <a href="/post/sql-indexing-practical-guide">practical guide to SQL indexing</a> takes it from there.</p>
+
+<ul>
+<li><strong>Parameterize every query.</strong> No string building, no <code>sprintf()</code> into SQL, no exceptions for "internal only" parameters.</li>
+<li><strong>Escape at the point of output, not the point of input.</strong> <code>htmlspecialchars($value, ENT_QUOTES, 'UTF-8')</code> for HTML body text and attributes; JSON-encode for JavaScript contexts.</li>
+<li><strong>Validate with allowlists, not blocklists.</strong> "Only these characters may appear" survives everything you forgot to forbid.</li>
+<li><strong>Hash passwords with <code>password_hash()</code> and verify with <code>password_verify()</code></strong>; never roll your own, never store a plain or reversibly encrypted password.</li>
+<li><strong>Check authorization server-side on every request.</strong> Being logged in is authentication; being allowed to edit <em>this</em> record is authorization, and it is checked per resource.</li>
+<li><strong>Keep secrets out of the repository.</strong> Configuration comes from the environment; a credential committed once is compromised forever.</li>
+</ul>
+
+<h2>Test the behaviour, not the implementation</h2>
+<p>Tests that break when you refactor without changing behaviour are slowing you down, not protecting you. A test should assert what a caller can observe — returned values, resulting state, output — and stay silent about which private methods were called on the way.</p>
+
+<pre><code>use PHPUnit\Framework\TestCase;
+
+final class DiscountTest extends TestCase
+{
+    public function testApplyReducesTheAmountByTheConfiguredPercent(): void
+    {
+        $discount = new Discount('WELCOME20', 20);
+
+        $this-&gt;assertSame(80.0, $discount-&gt;apply(100.0));
+    }
+
+    public function testPercentOutOfRangeIsRejectedAtConstruction(): void
+    {
+        $this-&gt;expectException(\InvalidArgumentException::class);
+
+        new Discount('BROKEN', 150);
+    }
+}</code></pre>
+
+<ul>
+<li>Name tests after the behaviour: <code>testExpiredCouponIsRejected</code> documents a rule; <code>testSetters</code> documents nothing.</li>
+<li>Assert on outputs and state, never on call counts of collaborators you just extracted.</li>
+<li>One behaviour per test. When a test fails, the test name should tell you which rule broke.</li>
+<li>Test the boundary values — 0, 1, an empty string, a missing key — where PHP's loose comparisons used to hide surprises.</li>
+<li>Keep the suite fast enough that running it is cheaper than thinking about whether to run it.</li>
+<li>Write the test for the bug you just fixed, first, so the fix can never silently regress.</li>
+</ul>
+
+<p>This habit connects to how your team works, not just to your code: a test suite only pays off if it runs on every change, which is part of the <a href="/post/git-workflows-team-scale">branch and review workflow</a> rather than an afterthought.</p>
+
+<h2>Common smells and their first fix</h2>
+<p>You will not rewrite the codebase, and you should not try. Most maintainability gains come from recognizing a small set of recurring smells and fixing them the moment you touch the file.</p>
+
+<table>
+<thead>
+<tr><th>Smell</th><th>Why it hurts</th><th>First fix</th></tr>
+</thead>
+<tbody>
+<tr><td><code>$data</code>, <code>$arr1</code>, <code>$tmp</code></td><td>Reader must open another file to learn what it holds</td><td>Rename to the domain concept: <code>$publishedPosts</code></td></tr>
+<tr><td>One function that filters, sorts, formats and prints</td><td>Every change risks breaking the other three jobs</td><td>Split into one function per step, keep a thin caller</td></tr>
+<tr><td>Three or four levels of nested conditionals</td><td>Errors hide in the branches reviewers skim</td><td>Guard clauses with early returns</td></tr>
+<tr><td>Magic strings and numbers repeated across files</td><td>One copy changes, the others silently drift</td><td>A named constant or a value object with a constructor guard</td></tr>
+<tr><td>SQL built by concatenation</td><td>Injection risk and query plans you cannot read</td><td>Prepared statements, always</td></tr>
+<tr><td>Tests that assert internal call order</td><td>Harmless refactors fail the suite; trust erodes</td><td>Assert returned values and observable state</td></tr>
+<tr><td>Commented-out code blocks</td><td>History belongs in version control, not in the file</td><td>Delete it; the diff is one <code>git log</code> away</td></tr>
+</tbody>
+</table>
+
+<h2>A worked refactoring: one handler, before and after</h2>
+<p>Here is a realistic endpoint — a rough search over orders — rewritten with the habits above. Nothing architectural changes: same file, same framework-agnostic PHP, same result for the caller.</p>
+
+<p><strong>Before</strong> — one function, unvalidated input, concatenated SQL, no types, output mixed with logic:</p>
+<pre><code>function h()
+{
+    $q = $_GET['q'] ?? '';
+    $pdo = $GLOBALS['pdo'];
+    $rows = $pdo-&gt;query("SELECT * FROM orders WHERE email LIKE '%" . $q . "%'")
+        -&gt;fetchAll();
+
+    $out = '';
+    foreach ($rows as $row) {
+        if ($row['status'] != 'shipped') {
+            if ($row['total'] &gt; 0) {
+                $out .= $row['email'] . ',' . $row['total'] . "\n";
+            }
+        }
+    }
+    echo $out;
+}</code></pre>
+
+<p><strong>After</strong> — validation at the edge, a prepared statement, one job per function, and a handler that only orchestrates:</p>
+<pre><code>function matchingOrders(PDO $pdo, string $emailFragment): array
+{
+    $stmt = $pdo-&gt;prepare(
+        'SELECT email, total
+           FROM orders
+          WHERE email LIKE :fragment
+            AND status &lt;&gt; :status
+            AND total &gt; 0'
+    );
+    $stmt-&gt;execute([
+        'fragment' =&gt; '%' . $emailFragment . '%',
+        'status'   =&gt; 'shipped',
+    ]);
+
+    return $stmt-&gt;fetchAll(PDO::FETCH_ASSOC);
+}
+
+// In the request handler:
+$fragment = trim($_GET['q'] ?? '');
+if (preg_match('/^[A-Za-z0-9@. -]{0,64}$/', $fragment) !== 1) {
+    http_response_code(422);
+    exit;
+}
+
+header('Content-Type: application/json');
+echo json_encode(matchingOrders($pdo, $fragment), JSON_THROW_ON_ERROR);</code></pre>
+
+<p>What improved, concretely: the injection surface is gone because the value is bound, not interpolated; the filter rules live in one query instead of scattered <code>if</code> branches; <code>matchingOrders()</code> can be unit-tested with a fixture database or a stubbed PDO; and the response format is now explicit. What did <em>not</em> change: no interface was extracted, no container was introduced, and no design pattern was named in the diff.</p>
+
+<h2>When these habits backfire</h2>
+<p>Clean-code advice fails when it is applied as ritual instead of judgment. The honest boundaries:</p>
+<ul>
+<li><strong>One-off scripts.</strong> A 100-line migration or report script needs clarity, not repositories, interfaces and dependency injection. Structure is an investment; only make it where code will keep living.</li>
+<li><strong>Premature abstraction.</strong> Three similar functions are cheaper than one wrong base class. Wait until the duplication has repeated, then extract what is genuinely shared.</li>
+<li><strong>Framework-fighting.</strong> In Laravel or Symfony, the framework's conventions <em>are</em> the maintainability. Inventing your own service layer beside it produces two systems to learn.</li>
+<li><strong>Micro-optimizing clear code.</strong> Profile before trading readability for speed. Correctness first, then measured performance, then elegance.</li>
+<li><strong>Name inflation.</strong> <code>AbstractPostRepositoryGatewayFactory</code> is precise and useless. Intent beats ceremony.</li>
+<li><strong>Test-dosage.</strong> Testing every private branch of a leaf utility burns hours without catching real regressions. Test the behaviours that would hurt if they broke.</li>
+</ul>
+
+<p>There is also a social limit: none of this survives a team that does not review it. Naming and splitting are conventions, and conventions hold when pull requests are small and reviewers can actually read them.</p>
+
+<h2>Key takeaways</h2>
+<ul>
+<li>Maintainability comes from four disciplines — intent-revealing names, single-job functions, guarded input, and behaviour tests — not from a folder structure.</li>
+<li>Before/after beats theory: rename, split, guard-clause and parameterize the file you are already touching, and the codebase improves without a rewrite.</li>
+<li>Security is part of clean code: prepared statements, context-aware output escaping, allowlist validation, server-side authorization and <code>password_hash()</code>.</li>
+<li>Tests protect behaviour; tests that pin implementation actively resist refactoring and should be rewritten.</li>
+<li>Patterns are earned. Add structure when change pressure proves you need it, not before.</li>
+<li>The habits are cheap individually and compounding collectively — but only if the team reviews them.</li>
+</ul>
+
+<p>Maintainable code is a series of small, boring, disciplined decisions. That is the whole secret. Pick one habit from this article and apply it to the next file you open — rename something, split something, add one test — and keep going. If you want the same discipline applied to how your team ships, read <a href="/post/git-workflows-team-scale">git workflows that scale past five developers</a>; if you are newer to typed languages, the <a href="/post/typescript-tips-hard-way">TypeScript tips that bite newcomers</a> cover the same instinct from the compiler's side.</p>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" role="img" aria-labelledby="title desc">
+  <title id="title">Serverless request lifecycle</title>
+  <desc id="desc">A request travels from a client through a gateway or event source to a function runtime, which calls a managed service, then the response returns; a dashed note explains that idle environments are reclaimed and the next request may pay a cold start.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1f4fd8"/>
+    </marker>
+    <marker id="arrowMuted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#5a6070"/>
+    </marker>
+    <marker id="arrowAccent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#e8402a"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="520" fill="#f7f6f2"/>
+
+  <text x="450" y="48" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="24" font-weight="700" fill="#14161c">Serverless request lifecycle</text>
+  <text x="450" y="76" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Every arrow is a latency and cost boundary</text>
+
+  <!-- Forward path boxes -->
+  <rect x="40" y="180" width="170" height="76" rx="14" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="125" y="212" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" font-weight="700" fill="#14161c">Client request</text>
+  <text x="125" y="236" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">HTTP event, upload, cron</text>
+
+  <rect x="270" y="180" width="170" height="76" rx="14" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="355" y="212" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" font-weight="700" fill="#14161c">Gateway / trigger</text>
+  <text x="355" y="236" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">auth, routing, quota</text>
+
+  <rect x="500" y="180" width="170" height="76" rx="14" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="585" y="212" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" font-weight="700" fill="#14161c">Function runtime</text>
+  <text x="585" y="236" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">handler runs here</text>
+
+  <rect x="730" y="180" width="140" height="76" rx="14" fill="#ffffff" stroke="#1f4fd8" stroke-width="2"/>
+  <text x="800" y="212" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" font-weight="700" fill="#14161c">Managed</text>
+  <text x="800" y="236" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">DB · queue · storage</text>
+
+  <!-- Forward arrows -->
+  <line x1="212" y1="218" x2="262" y2="218" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="442" y1="218" x2="492" y2="218" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="672" y1="218" x2="722" y2="218" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Return path -->
+  <polyline points="800,168 800,124 125,124 125,172" fill="none" stroke="#1f4fd8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="462" y="112" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#1f4fd8" font-weight="700">response returns the way it came</text>
+
+  <!-- Cold start note -->
+  <rect x="470" y="330" width="230" height="96" rx="14" fill="#ffffff" stroke="#e8402a" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="585" y="360" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" font-weight="700" fill="#e8402a">Idle → reclaimed</text>
+  <text x="585" y="384" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">next request creates a fresh</text>
+  <text x="585" y="406" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">environment: the cold start</text>
+  <line x1="585" y1="330" x2="585" y2="264" stroke="#e8402a" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrowAccent)"/>
+
+  <!-- Cost / latency captions -->
+  <text x="450" y="296" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">forward path: invocation + duration are metered at the function hop</text>
+
+  <!-- Muted note bottom -->
+  <line x1="150" y1="380" x2="150" y2="440" stroke="#5a6070" stroke-width="2" marker-end="url(#arrowMuted)" stroke-dasharray="4 5"/>
+  <text x="164" y="404" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">scale to zero: no events</text>
+  <text x="164" y="426" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">→ no environment → no compute cost</text>
+
+  <text x="450" y="486" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#5a6070">Dashed red path: what happens between requests when traffic stops</text>
+</svg>
