@@ -46,13 +46,13 @@ jobs:
              find "$HOME/domains/$D" -maxdepth 4 -name "robots*" -exec ls -la {} \; 2>/dev/null
              echo "== local tooling =="
              for c in curl wget php; do command -v $c >/dev/null 2>&1 && echo "have: $c"; done
-             echo "== ORIGIN TRUTH via loopback =="
+             echo "== ORIGIN TRUTH via loopback https (bypass hcdn) =="
              if command -v curl >/dev/null 2>&1; then
-               for u in robots.txt robots.php; do
-                 echo "--- GET http://127.0.0.1/$u (Host: $D)"
-                 curl -s -m 10 -D /tmp/h.$$ -o /tmp/b.$$ -H "Host: $D" "http://127.0.0.1/$u" || { echo "curl failed: $?"; continue; }
-                 head -15 /tmp/h.$$
-                 echo "BODY>>$(head -c 400 /tmp/b.$$ | tr "\n" "|")<<"
+               for u in robots.txt robots.php ""; do
+                 echo "--- GET https://127.0.0.1/$u (Host: $D, -k)"
+                 curl -sk -m 10 -D /tmp/h.$$ -o /tmp/b.$$ -H "Host: $D" "https://127.0.0.1/$u" || { echo "curl failed: $?"; continue; }
+                 head -12 /tmp/h.$$
+                 echo "BODY>>$(head -c 500 /tmp/b.$$ | tr "\n" "|")<<"
                  echo
                done
                rm -f /tmp/h.$$ /tmp/b.$$
@@ -64,4 +64,9 @@ jobs:
              head -20 /tmp/ph.$$
              echo "BODY>>$(head -c 400 /tmp/pb.$$ | tr "\n" "|")<<"
              rm -f /tmp/ph.$$ /tmp/pb.$$
+             echo "== public security probes (status codes only) =="
+             for p in /.git/HEAD /database.sql /seed.php /router.php /prompt.txt /docs/README.md /.github/workflows/deploy.yml /config/config.php /includes/header.php; do
+               code=$(curl -s -o /dev/null -m 15 -w "%{http_code}" "https://$D$p")
+               echo "  $code $p"
+             done
              echo "== done =="'
