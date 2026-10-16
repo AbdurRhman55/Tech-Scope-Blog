@@ -48,25 +48,24 @@ jobs:
              for c in curl wget php; do command -v $c >/dev/null 2>&1 && echo "have: $c"; done
              echo "== ORIGIN TRUTH via loopback https (bypass hcdn) =="
              if command -v curl >/dev/null 2>&1; then
-               for u in robots.txt robots.php ""; do
+               for u in robots.txt sitemap.xml ""; do
                  echo "--- GET https://127.0.0.1/$u (Host: $D, -k)"
-                 curl -sk -m 10 -D /tmp/h.$$ -o /tmp/b.$$ -H "Host: $D" "https://127.0.0.1/$u" || { echo "curl failed: $?"; continue; }
-                 head -12 /tmp/h.$$
-                 echo "BODY>>$(head -c 500 /tmp/b.$$ | tr "\n" "|")<<"
+                 curl -sk -m 15 -D /tmp/h.$$ -o /tmp/b.$$ -H "Host: $D" "https://127.0.0.1/$u" || { echo "curl failed: $?"; continue; }
+                 head -6 /tmp/h.$$
+                 echo "BODY>>$(head -c 900 /tmp/b.$$ | tr "\n" "|")<<"
+                 echo "LOCALHOST-HITS: $(grep -c localhost /tmp/b.$$ 2>/dev/null || echo 0) | LIVE-HITS: $(grep -c silver-wolf-692661 /tmp/b.$$ 2>/dev/null || echo 0)"
                  echo
                done
                rm -f /tmp/h.$$ /tmp/b.$$
              else
                echo "no curl on server"
              fi
-             echo "== public path FROM RUNNER =="
-             curl -s -m 15 -D /tmp/ph.$$ -o /tmp/pb.$$ "https://$D/robots.txt" || echo "runner curl failed"
-             head -20 /tmp/ph.$$
-             echo "BODY>>$(head -c 400 /tmp/pb.$$ | tr "\n" "|")<<"
-             rm -f /tmp/ph.$$ /tmp/pb.$$
-             echo "== public security probes (status codes only) =="
-             for p in /.git/HEAD /database.sql /seed.php /router.php /prompt.txt /docs/README.md /.github/workflows/deploy.yml /config/config.php /includes/header.php; do
-               code=$(curl -s -o /dev/null -m 15 -w "%{http_code}" "https://$D$p")
-               echo "  $code $p"
-             done
+             echo "== SITE_URL + canonical lines from config (non-secret lines only) =="
+             grep -n "SITE_URL\|DEBUG" "$SD/config/config.php" | head -10
+             echo "== homepage canonical/og checks (loopback) =="
+             curl -sk -m 15 -H "Host: $D" "https://127.0.0.1/" -o /tmp/hp.$$
+             grep -o "<link rel=\"canonical\"[^>]*>" /tmp/hp.$$ | head -3
+             grep -o "og:url[^>]*>" /tmp/hp.$$ | head -3
+             echo "HOMEPAGE localhost-hits: $(grep -c localhost /tmp/hp.$$ || echo 0)"
+             rm -f /tmp/hp.$$
              echo "== done =="'
