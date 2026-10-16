@@ -1,0 +1,89 @@
+name: Fix Production Config
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fix:
+    name: Set production SITE_URL and DEBUG=false (with backup + verification)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    env:
+      HOSTINGER_SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+      HOSTINGER_SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+      HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+      HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+      HOSTINGER_SSH_KNOWN_HOSTS: ${{ secrets.HOSTINGER_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$HOSTINGER_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$HOSTINGER_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Backup, fix SITE_URL + DEBUG, verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          D=silver-wolf-692661.hostingersite.com
+          SD="/home/$HOSTINGER_SSH_USER/domains/$D/public_html"
+          ssh -p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST" \
+            "SD='$SD' D='$D' bash -s" <<'EOS'
+          set -euo pipefail
+          CFG="$SD/config/config.php"
+          echo "== BEFORE (non-secret lines) =="
+          grep -n "SITE_URL\|DEBUG" "$CFG" | head -8 || true
+          echo "== other localhost/laragon leftovers =="
+          grep -n "localhost\|laragon" "$CFG" | head -10 || true
+
+          TS=$(date +%Y%m%d-%H%M%S)
+          cp -p "$CFG" "$CFG.bak-$TS"
+          echo "backup created: config.php.bak-$TS"
+
+          cat > /tmp/fixcfg.php <<'PHPEOF'
+          <?php
+          $f = $argv[1];
+          $c = file_get_contents($f);
+          if ($c === false) { fwrite(STDERR, "config read failed\n"); exit(2); }
+          $domain = 'https://silver-wolf-692661.hostingersite.com';
+          $c = preg_replace("~define\(\s*'SITE_URL'\s*,\s*'[^']*'\s*\)~",
+                           "define( 'SITE_URL',   '" . $domain . "' )", $c, -1, $n1);
+          $c = preg_replace("~define\(\s*'DEBUG'\s*,\s*(?:true|false|1|0|TRUE|FALSE)\s*\)~",
+                           "define( 'DEBUG', false )", $c, -1, $n2);
+          if ($n1 !== 1) { fwrite(STDERR, "SITE_URL matched $n1 times (expected 1) - aborting\n"); exit(10); }
+          if ($n2 !== 1) { fwrite(STDERR, "DEBUG matched $n2 times (expected 1) - aborting\n"); exit(11); }
+          if (file_put_contents($f, $c) === false) { fwrite(STDERR, "config write failed\n"); exit(12); }
+          echo "REPLACED: SITE_URL x$n1, DEBUG x$n2\n";
+          PHPEOF
+          php /tmp/fixcfg.php "$CFG"
+
+          echo "== AFTER =="
+          grep -n "SITE_URL\|DEBUG" "$CFG" | head -8
+          echo "== leftover localhost/laragon (should be empty) =="
+          grep -n "localhost\|laragon" "$CFG" | head -10 || echo "  none"
+
+          echo "== loopback robots.txt sitemap line =="
+          curl -sk -m 15 -H "Host: $D" "https://127.0.0.1/robots.txt" | grep -i "^Sitemap:" || echo "  NO SITEMAP LINE (fail)"
+
+          echo "== PUBLIC homepage canonical (from runner, through CDN) =="
+          curl -s -m 20 "https://$D/" | grep -o '<link rel="canonical"[^>]*>' | head -2 || echo "  none"
+
+          echo "== PUBLIC sitemap.xml counts =="
+          curl -s -m 20 "https://$D/sitemap.xml" -o /tmp/sm.$$
+          echo "  localhost: $(grep -c localhost /tmp/sm.$$ || true)"
+          echo "  live-domain: $(grep -c silver-wolf-692661 /tmp/sm.$$ || true)"
+          echo "  first locs:"
+          grep -o "<loc>[^<]*</loc>" /tmp/sm.$$ | head -3
+          rm -f /tmp/sm.$$ /tmp/fixcfg.php
+          echo "== done =="
+          EOS
