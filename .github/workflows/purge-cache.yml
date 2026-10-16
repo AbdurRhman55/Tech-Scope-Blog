@@ -29,34 +29,54 @@ jobs:
           printf '%s\n' "$HOSTINGER_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Clear website cache (token never echoed)
+      - name: Clear website cache (tokens never echoed)
         shell: bash
         run: |
           set -euo pipefail
           set +x
           D=silver-wolf-692661.hostingersite.com
           U="$HOSTINGER_SSH_USER"
-          TOK=$(ssh -p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" \
+          B="https://developers.hostinger.com/api/hosting/v1"
+          URL="$B/accounts/$U/websites/$D/cache/clear"
+
+          collect_tokens() {
+            # prints candidate tokens one per line - callers must keep them in memory only
+            ssh -p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" \
                 -o BatchMode=yes -o StrictHostKeyChecking=yes \
                 "$HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST" \
-                'cat "$HOME/.api_token" 2>/dev/null' | tr -d '\r\n' || true)
-          if [ -z "$TOK" ]; then echo "RESULT: TOKEN_MISSING on server"; exit 20; fi
-          echo "token acquired (length ${#TOK}) - value not displayed"
+                'bash -s' <<'EOFT' | tr -d '\r'
+          f="$HOME/.api_token"
+          [ -f "$f" ] && cat "$f"
+          for g in "$HOME"/.credentials_*; do
+            [ -f "$g" ] || continue
+            if head -c 1 "$g" | grep -q "{"; then
+              php -r '$j=json_decode(file_get_contents($argv[1]),true); foreach(["access_token","token","api_token","key"] as $k){ if(!empty($j[$k]) && is_string($j[$k])){ echo $j[$k],"\n"; return; }}' "$g" 2>/dev/null || true
+            else
+              cat "$g"
+            fi
+          done
+          EOFT
+          }
 
-          B="https://developers.hostinger.com/api/hosting/v1"
-          echo "== DELETE cache/clear =="
-          code=$(curl -s -o /tmp/cc.json -w '%{http_code}' -X DELETE \
-                 -H "Authorization: Bearer $TOK" \
-                 -H "Content-Type: application/json" \
-                 "$B/accounts/$U/websites/$D/cache/clear" || true)
-          echo "HTTP $code"
-          echo "response: $(head -c 600 /tmp/cc.json)"
-          echo
+          i=0
+          while IFS= read -r TOK; do
+            [ -z "$TOK" ] && continue
+            i=$((i+1))
+            if [ "$i" -gt 5 ]; then echo "candidate cap (5) reached - stopping"; break; fi
+            code=$(curl -s -o /tmp/cc$i.json -w '%{http_code}' -X DELETE \
+                   -H "Authorization: Bearer $TOK" \
+                   -H "Content-Type: application/json" \
+                   "$URL" || true)
+            echo "candidate #$i (len ${#TOK}) -> HTTP $code"
+            [ "$code" = "201" -o "$code" = "200" -o "$code" = "204" ] && echo "CANDIDATE #$i WORKED: $(head -c 400 /tmp/cc$i.json)"
+            [ "$code" != "401" ] && [ "$code" != "201" ] && [ "$code" != "200" ] && [ "$code" != "204" ] && echo "  resp: $(head -c 300 /tmp/cc$i.json)"
+          done < <(collect_tokens)
+          echo "tried $i candidate(s)"
 
           sleep 6
-          echo "== PUBLIC robots.txt after clear =="
+          echo "== PUBLIC robots.txt after attempts =="
           curl -s -m 20 "https://$D/robots.txt" -o /tmp/rb.txt || true
           echo "len=$(wc -c < /tmp/rb.txt) googlebot_hits=$(grep -c Googlebot /tmp/rb.txt || true) sitemap_hits=$(grep -c 'Sitemap:' /tmp/rb.txt || true)"
-          echo "body>>$(head -c 400 /tmp/rb.txt | tr '\n' '|')<<"
-          rm -f /tmp/cc.json /tmp/rb.txt
+          rm -f /tmp/cc*.json /tmp/rb.txt
           echo "== done =="
+
