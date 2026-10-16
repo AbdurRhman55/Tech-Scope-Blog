@@ -89,6 +89,8 @@ $_assetVer = function_exists('asset_version') ? asset_version() : (string) @file
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="<?= url('/assets/css/app.css') ?>?v=<?= e($_assetVer) ?>">
+    <!-- Google Search Console HTML-tag verification (keep permanently; removing it un-verifies the property) -->
+    <meta name="google-site-verification" content="4igcp7jEnpYf5FrozZHeUR1_3cb_1W9yV1bmzwmcJD0" />
 </head>
 
 <body class="antialiased"
