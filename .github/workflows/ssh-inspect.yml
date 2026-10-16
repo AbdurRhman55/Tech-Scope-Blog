@@ -36,24 +36,32 @@ jobs:
           ssh -p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" \
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
             "$HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST" \
-            'echo "== whoami =="; whoami; echo "HOME=$HOME"
-             echo "== home listing =="; ls -a "$HOME" | head -60
-             echo "== candidate docroots =="
-             for p in public_html domains/*/public_html www html; do
-               full="$HOME/$p"
-               if [ -d "$full" ]; then
-                 echo "DIR: $p"
-                 [ -d "$full/config" ] && echo "   +config/"
-                 [ -f "$full/robots.php" ] && echo "   +robots.php"
-                 [ -f "$full/robots.txt" ] && echo "   +robots.txt ($(wc -c < "$full/robots.txt") bytes)"
-                 [ -f "$full/.htaccess" ] && echo "   +.htaccess ($(wc -c < "$full/.htaccess") bytes, md5 $(md5sum "$full/.htaccess" | cut -d" " -f1))"
-                 [ -f "$full/includes/header.php" ] && echo "   +includes/header.php ($(wc -c < "$full/includes/header.php") bytes, md5 $(md5sum "$full/includes/header.php" | cut -d" " -f1))"
-               fi
-             done
-             echo "== robots.txt/.htaccess anywhere (maxdepth 5) =="
-             find "$HOME" -maxdepth 5 \( -name robots.txt -o -name .htaccess \) 2>/dev/null | head -30
-             echo "== server .htaccess robots lines =="
-             for f in "$HOME/public_html/.htaccess" "$HOME"/domains/*/public_html/.htaccess; do
-               [ -f "$f" ] && echo "-- $f" && grep -n "robots" "$f" || true
-             done
+            'D=silver-wolf-692661.hostingersite.com
+             SD="$HOME/domains/$D/public_html"
+             echo "== docroot full listing =="
+             ls -la "$SD" | head -80
+             echo "== stat key files =="
+             stat -c "%y | %s bytes | %n" "$SD/.htaccess" "$SD/robots.php" "$SD/includes/header.php" 2>/dev/null
+             echo "== any robots* under domain dir =="
+             find "$HOME/domains/$D" -maxdepth 4 -name "robots*" -exec ls -la {} \; 2>/dev/null
+             echo "== local tooling =="
+             for c in curl wget php; do command -v $c >/dev/null 2>&1 && echo "have: $c"; done
+             echo "== ORIGIN TRUTH via loopback =="
+             if command -v curl >/dev/null 2>&1; then
+               for u in robots.txt robots.php; do
+                 echo "--- GET http://127.0.0.1/$u (Host: $D)"
+                 curl -s -m 10 -D /tmp/h.$$ -o /tmp/b.$$ -H "Host: $D" "http://127.0.0.1/$u" || { echo "curl failed: $?"; continue; }
+                 head -15 /tmp/h.$$
+                 echo "BODY>>$(head -c 400 /tmp/b.$$ | tr "\n" "|")<<"
+                 echo
+               done
+               rm -f /tmp/h.$$ /tmp/b.$$
+             else
+               echo "no curl on server"
+             fi
+             echo "== public path FROM RUNNER =="
+             curl -s -m 15 -D /tmp/ph.$$ -o /tmp/pb.$$ "https://$D/robots.txt" || echo "runner curl failed"
+             head -20 /tmp/ph.$$
+             echo "BODY>>$(head -c 400 /tmp/pb.$$ | tr "\n" "|")<<"
+             rm -f /tmp/ph.$$ /tmp/pb.$$
              echo "== done =="'
