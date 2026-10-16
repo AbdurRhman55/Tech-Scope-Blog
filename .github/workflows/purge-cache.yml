@@ -1,0 +1,62 @@
+name: Purge Hostinger Cache
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  purge:
+    name: Clear website cache via Hostinger API (token stays in memory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    env:
+      HOSTINGER_SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+      HOSTINGER_SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+      HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+      HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+      HOSTINGER_SSH_KNOWN_HOSTS: ${{ secrets.HOSTINGER_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$HOSTINGER_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$HOSTINGER_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Clear website cache (token never echoed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          D=silver-wolf-692661.hostingersite.com
+          U="$HOSTINGER_SSH_USER"
+          TOK=$(ssh -p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" \
+                -o BatchMode=yes -o StrictHostKeyChecking=yes \
+                "$HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST" \
+                'cat "$HOME/.api_token" 2>/dev/null' | tr -d '\r\n' || true)
+          if [ -z "$TOK" ]; then echo "RESULT: TOKEN_MISSING on server"; exit 20; fi
+          echo "token acquired (length ${#TOK}) - value not displayed"
+
+          B="https://developers.hostinger.com/api/hosting/v1"
+          echo "== DELETE cache/clear =="
+          code=$(curl -s -o /tmp/cc.json -w '%{http_code}' -X DELETE \
+                 -H "Authorization: Bearer $TOK" \
+                 -H "Content-Type: application/json" \
+                 "$B/accounts/$U/websites/$D/cache/clear" || true)
+          echo "HTTP $code"
+          echo "response: $(head -c 600 /tmp/cc.json)"
+          echo
+
+          sleep 6
+          echo "== PUBLIC robots.txt after clear =="
+          curl -s -m 20 "https://$D/robots.txt" -o /tmp/rb.txt || true
+          echo "len=$(wc -c < /tmp/rb.txt) googlebot_hits=$(grep -c Googlebot /tmp/rb.txt || true) sitemap_hits=$(grep -c 'Sitemap:' /tmp/rb.txt || true)"
+          echo "body>>$(head -c 400 /tmp/rb.txt | tr '\n' '|')<<"
+          rm -f /tmp/cc.json /tmp/rb.txt
+          echo "== done =="
