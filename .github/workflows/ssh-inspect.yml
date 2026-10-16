@@ -1,0 +1,59 @@
+name: SSH Inspect Remote Layout
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    name: Read-only remote directory discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    env:
+      HOSTINGER_SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+      HOSTINGER_SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+      HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+      HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+      HOSTINGER_SSH_KNOWN_HOSTS: ${{ secrets.HOSTINGER_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$HOSTINGER_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$HOSTINGER_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Discover document root (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST" \
+            'echo "== whoami =="; whoami; echo "HOME=$HOME"
+             echo "== home listing =="; ls -a "$HOME" | head -60
+             echo "== candidate docroots =="
+             for p in public_html domains/*/public_html www html; do
+               full="$HOME/$p"
+               if [ -d "$full" ]; then
+                 echo "DIR: $p"
+                 [ -d "$full/config" ] && echo "   +config/"
+                 [ -f "$full/robots.php" ] && echo "   +robots.php"
+                 [ -f "$full/robots.txt" ] && echo "   +robots.txt ($(wc -c < "$full/robots.txt") bytes)"
+                 [ -f "$full/.htaccess" ] && echo "   +.htaccess ($(wc -c < "$full/.htaccess") bytes, md5 $(md5sum "$full/.htaccess" | cut -d" " -f1))"
+                 [ -f "$full/includes/header.php" ] && echo "   +includes/header.php ($(wc -c < "$full/includes/header.php") bytes, md5 $(md5sum "$full/includes/header.php" | cut -d" " -f1))"
+               fi
+             done
+             echo "== robots.txt/.htaccess anywhere (maxdepth 5) =="
+             find "$HOME" -maxdepth 5 \( -name robots.txt -o -name .htaccess \) 2>/dev/null | head -30
+             echo "== server .htaccess robots lines =="
+             for f in "$HOME/public_html/.htaccess" "$HOME"/domains/*/public_html/.htaccess; do
+               [ -f "$f" ] && echo "-- $f" && grep -n "robots" "$f" || true
+             done
+             echo "== done =="'
