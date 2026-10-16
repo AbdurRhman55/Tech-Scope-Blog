@@ -15,6 +15,12 @@ DirectoryIndex index.php
   # passthrough below, otherwise real files inside them are served).
   RewriteRule ^(config|tools|includes)/ - [F,L]
 
+  # robots.txt must ALWAYS come from robots.php (dynamic, correct sitemap).
+  # Placed before the real-file passthrough below so a stale static
+  # robots.txt uploaded to public_html can never shadow it — a stray
+  # "Disallow: /" for Googlebot silently blocks verification + indexing.
+  RewriteRule ^robots\.txt$ robots.php [L]
+
   # Allow real files & directories to pass through
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
@@ -30,7 +36,6 @@ DirectoryIndex index.php
   RewriteRule ^disclaimer/?$      disclaimer.php  [L,QSA]
   RewriteRule ^sitemap/?$         sitemap.php     [L,QSA]
   RewriteRule ^sitemap\.xml$      sitemap-xml.php [L]
-  RewriteRule ^robots\.txt$       robots.php      [L]
   RewriteRule ^search/?$          search.php      [L,QSA]
   RewriteRule ^post/([^/]+)/?$    post.php?slug=$1    [L,QSA]
   RewriteRule ^category/([^/]+)/?$ category.php?slug=$1 [L,QSA]
