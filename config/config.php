@@ -41,7 +41,17 @@ define( 'DB_CHARSET', 'utf8mb4' );
 /* ---------------------------------------------------------------
 * Site
 * --------------------------------------------------------------- */
-define( 'SITE_URL',   'http://localhost/Blog-website' );
+if ( $isLocalRequest ) {
+    define( 'SITE_URL', 'http://localhost/Blog-website' );
+} else {
+    // Derive the canonical site URL from the live request so re-deploys
+    // (which restore this file from the repo) never leak localhost URLs
+    // into sitemaps, canonicals or og:url on the production server.
+    // The Hostinger edge 301s http -> https before PHP runs (and the
+    // CDN -> origin leg may be plain HTTP), so production is always https.
+    $siteHost = preg_replace( '/^www\./', '', strtolower( (string) ( $_SERVER[ 'HTTP_HOST' ] ?? 'silver-wolf-692661.hostingersite.com' ) ) );
+    define( 'SITE_URL', 'https://' . $siteHost );
+}
 // no trailing slash
 define( 'SITE_NAME',  'TechScope' );
 define( 'SITE_LOCALE', 'en_US' );
@@ -77,7 +87,7 @@ define( 'LOGIN_LOCK_MIN', 15 );
 /* ---------------------------------------------------------------
 * Error display — OFF in production ( set false on live server )
 * --------------------------------------------------------------- */
-define( 'DEBUG', true );
+define( 'DEBUG', $isLocalRequest );
 
 /* ---------------------------------------------------------------
 * Bootstrap

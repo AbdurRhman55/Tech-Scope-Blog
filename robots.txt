@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /config/
+Disallow: /tools/
+Disallow: /includes/
+Disallow: /assets/uploads/tmp/
+Disallow: /search
+
+Clean-param: q
+
+Sitemap: https://silver-wolf-692661.hostingersite.com/sitemap.xml
