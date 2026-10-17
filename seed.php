@@ -6,6 +6,13 @@
  * ---------------------------------------------------------------------
  */
 
+// CLI-only: this script writes to the database. Never let an HTTP request
+// execute it (a web hit on a shared/public URL would seed production data).
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    die('CLI only.');
+}
+
 require_once __DIR__ . '/includes/functions.php';
 
 echo "Seeding demo content...\n";
