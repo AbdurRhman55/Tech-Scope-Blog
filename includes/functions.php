@@ -343,6 +343,25 @@ function seo_head(?string $title = null, ?string $desc = null, string $type = 'w
 {
     $siteName  = setting('site_name', SITE_NAME);
     $title     = $title !== null ? $title : $siteName . ' — ' . setting('site_tagline');
+
+    // SERP-safe title length: Google truncates around 60 characters and
+    // Ahrefs flags anything over 70 as "Title too long". First try dropping
+    // the trailing " | Brand" suffix (keeps every word of the page title
+    // intact), otherwise cut on a word boundary — never mid-word, never
+    // below 40 chars (avoids tripping "Title too short").
+    if (mb_strlen($title) > 70) {
+        $bare = (string) preg_replace('/\s*\|\s*' . preg_quote($siteName, '/') . '$/u', '', $title);
+        if ($bare !== '' && mb_strlen($bare) >= 40 && mb_strlen($bare) <= 70) {
+            $title = $bare;
+        } else {
+            $cut = mb_substr($title, 0, 70);
+            $sp  = mb_strrpos($cut, ' ');
+            if ($sp !== false && $sp >= 40) {
+                $title = mb_substr($cut, 0, $sp);
+            }
+        }
+    }
+
     $desc      = $desc !== null ? $desc : setting('site_description');
     $desc      = mb_substr($desc, 0, 300);
     $image     = normalize_og_image($image ?: url('/assets/img/default-og.png'));

@@ -98,7 +98,29 @@ ini_set( 'log_errors', '1' );
 
 date_default_timezone_set( 'UTC' );
 
-if ( session_status() === PHP_SESSION_NONE ) {
+/*
+ * Sessions are only required for auth, CSRF tokens, flash messages and
+ * comment prefills. Starting one on every anonymous GET makes PHP emit
+ * "Cache-Control: no-store" + Set-Cookie, which permanently prevents the
+ * CDN from caching public pages (slow TTFB for readers and crawlers).
+ * So: start a session only when something can actually need it —
+ * non-GET requests, visitors who already carry our cookie, the admin
+ * area, and the two public pages that render CSRF forms.
+ */
+// Match on the request path with the app's base path removed so this works
+// both at the production domain root and under a local / subdirectory vhost.
+$reqPath = (string) ( parse_url( (string) ( $_SERVER[ 'REQUEST_URI' ] ?? '/' ), PHP_URL_PATH ) ?: '/' );
+$basePath = rtrim( (string) ( parse_url( SITE_URL, PHP_URL_PATH ) ?: '' ), '/' );
+if ( $basePath !== '' && ( $reqPath === $basePath || str_starts_with( $reqPath, $basePath . '/' ) ) ) {
+    $reqPath = substr( $reqPath, strlen( $basePath ) ) ?: '/';
+}
+
+$wantsSession = php_sapi_name() === 'cli'
+    || ( $_SERVER[ 'REQUEST_METHOD' ] ?? 'GET' ) !== 'GET'
+    || isset( $_COOKIE[ SESSION_NAME ] )
+    || preg_match( '#^/(admin|contact|post)(/|$)#', $reqPath ) === 1;
+
+if ( $wantsSession && session_status() === PHP_SESSION_NONE ) {
     session_set_cookie_params( [
         'httponly' => true,
         'samesite' => 'Lax',
@@ -106,4 +128,10 @@ if ( session_status() === PHP_SESSION_NONE ) {
     ] );
     session_name( SESSION_NAME );
     session_start();
+} elseif ( session_status() !== PHP_SESSION_ACTIVE
+    && ( $_SERVER[ 'REQUEST_METHOD' ] ?? 'GET' ) === 'GET'
+    && php_sapi_name() !== 'cli' ) {
+    // Sessionless public page: let shared caches (CDN edge) store it briefly.
+    // Fresh content is never more than this old (purge cache after big edits).
+    header( 'Cache-Control: public, max-age=300, s-maxage=300' );
 }
