@@ -72,7 +72,9 @@ seo_jsonld_add([
     'name'     => $category['name'] . ' — ' . setting('site_name', SITE_NAME),
     'description' => $page_desc,
     'url'      => SITE_URL . '/category/' . $category['slug'],
-    'numberOfItems' => $total,
+    // numberOfItems removed: its schema.org domain is ItemList only, so it is
+    // invalid on CollectionPage (validators reject it). The count stays visible
+    // as on-page text below.
 ]);
 
 require __DIR__ . '/includes/header.php';

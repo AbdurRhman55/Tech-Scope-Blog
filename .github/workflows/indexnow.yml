@@ -1,0 +1,95 @@
+name: Submit changed URLs to IndexNow
+# Every push to main changes live pages (SEO fixes, layout, new posts are
+# pushed too), so after each deploy we resubmit the full live sitemap to the
+# IndexNow endpoint — participating engines (Bing, Yep/Ahrefs, Naver, Seznam,
+# Yandex) then recrawl the changed URLs immediately instead of waiting.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  indexnow:
+    name: Ping IndexNow with the live sitemap URLs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SITE: silver-wolf-692661.hostingersite.com
+
+    steps:
+      - name: Checkout repository (IndexNow key file lives at the root)
+        uses: actions/checkout@v4
+
+      - name: Read the API key from the key file
+        id: key
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY=$(find . -maxdepth 1 -regextype posix-extended -regex './[0-9a-f]{32}\.txt' -printf '%f\n' | head -1 || true)
+          if [ -z "$KEY" ]; then
+            echo "ERROR: no {32-hex}.txt IndexNow key file at the repository root" >&2
+            exit 1
+          fi
+          echo "key=$KEY" >> "$GITHUB_OUTPUT"
+          echo "Using IndexNow key: $KEY"
+
+      - name: Wait until this deploy is live (key file fetchable, content matches)
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY="${{ steps.key.outputs.key }}"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /tmp/k.txt -w '%{http_code}' -m 15 "https://$SITE/$KEY.txt" || echo 000)
+            if [ "$code" = "200" ] && grep -q "$KEY" /tmp/k.txt; then
+              echo "Key file verified live on attempt $i"
+              exit 0
+            fi
+            echo "attempt $i -> HTTP $code, retrying in 10s..."
+            sleep 10
+          done
+          echo "ERROR: key file never became reachable — deploy may have failed" >&2
+          exit 1
+
+      - name: Give the auto-deploy a moment, then collect the live sitemap
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 30   # hPanel GIT auto-deploy usually finishes within this window
+          curl -sS -m 30 "https://$SITE/sitemap.xml" -o /tmp/sm.xml
+          grep -o '<loc>[^<]*</loc>' /tmp/sm.xml | sed 's/<[^>]*>//g' > /tmp/urls.txt
+          COUNT=$(wc -l < /tmp/urls.txt)
+          echo "sitemap URLs collected: $COUNT"
+          if [ "$COUNT" -lt 1 ]; then
+            echo "ERROR: empty sitemap — refusing to submit nothing" >&2
+            exit 1
+          fi
+          head -5 /tmp/urls.txt
+
+      - name: POST every URL to the IndexNow endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY="${{ steps.key.outputs.key }}"
+          jq -R . < /tmp/urls.txt | jq -s . > /tmp/urls.json
+          jq -n \
+            --arg host "$SITE" \
+            --arg key "$KEY" \
+            --arg keyLocation "https://$SITE/$KEY.txt" \
+            --slurpfile urls /tmp/urls.json \
+            '{host: $host, key: $key, keyLocation: $keyLocation, urlList: $urls[0]}' > /tmp/payload.json
+          # 200/201 = accepted; any 4xx means the payload/key was rejected.
+          code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' -X POST \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @/tmp/payload.json \
+            -m 60 https://api.indexnow.org/indexnow || echo 000)
+          echo "IndexNow endpoint -> HTTP $code"
+          cat /tmp/resp.txt 2>/dev/null || true
+          echo ""
+          case "$code" in
+            200|201) echo "Submission accepted ($(wc -l < /tmp/urls.txt) URLs)" ;;
+            *) echo "ERROR: IndexNow rejected the submission" >&2; exit 1 ;;
+          esac

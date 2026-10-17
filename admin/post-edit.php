@@ -200,6 +200,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         flash_set('success', $post ? 'Post updated.' : 'Post created.');
+        // IndexNow: tell participating engines a published post changed.
+        if ($status === 'published') {
+            indexnow_submit([url('/post/' . $slug)]);
+        }
         header('Location: ' . admin_url('post-edit.php?id=' . $postId));
         exit;
     }

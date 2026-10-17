@@ -32,6 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare("UPDATE comments SET status = ? WHERE id IN ($ph)")
             ->execute(array_merge([$newStatus], $ids));
         flash_set('success', count($ids) . ' comment(s) set to "' . $newStatus . '".');
+        // Approved comments render publicly — ping the affected post URLs.
+        if ($newStatus === 'approved') {
+            $sp = $pdo->prepare(
+                "SELECT DISTINCT p.slug FROM comments c
+                 JOIN posts p ON p.id = c.post_id
+                 WHERE c.id IN ($ph) AND p.status = 'published'"
+            );
+            $sp->execute($ids);
+            $slugs = $sp->fetchAll(PDO::FETCH_COLUMN);
+            if ($slugs) {
+                indexnow_submit(array_map(static fn(string $s): string => url('/post/' . $s), $slugs));
+            }
+        }
     } elseif ($action === 'delete' && $ids) {
         $ph = implode(',', array_fill(0, count($ids), '?'));
         $pdo->prepare("DELETE FROM comments WHERE id IN ($ph)")->execute($ids);

@@ -77,7 +77,8 @@ seo_jsonld_add([
     'name'     => '#' . $tag['name'] . ' — ' . setting('site_name', SITE_NAME),
     'description' => $page_desc,
     'url'      => SITE_URL . '/tag/' . $tag['slug'],
-    'numberOfItems' => $total,
+    // numberOfItems removed: schema.org domain is ItemList only — invalid on
+    // CollectionPage. Count remains visible as on-page text.
 ]);
 
 require __DIR__ . '/includes/header.php';

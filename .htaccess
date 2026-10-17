@@ -79,9 +79,12 @@ DirectoryIndex index.php
 
 # ---------------------------------------------------------------------
 # Block sensitive files — robots.txt must stay public (search engines
-# must be able to fetch it; everything else .txt stays denied)
+# must be able to fetch it; everything else .txt stays denied).
+# The IndexNow key file ({32-hex}.txt at the root) must also stay public:
+# engines fetch it to verify key ownership before accepting pings, so the
+# deny pattern explicitly excludes it via negative lookahead.
 # ---------------------------------------------------------------------
-<FilesMatch "\.(sql|md|log|ini|sh|yml|yaml|lock|txt)$">
+<FilesMatch "^(?![0-9a-f]{32}\.txt$).*\.(sql|md|log|ini|sh|yml|yaml|lock|txt)$">
   Require all denied
 </FilesMatch>
 <Files "robots.txt">

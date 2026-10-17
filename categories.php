@@ -78,4 +78,28 @@ require __DIR__ . '/includes/breadcrumb.php';
   <?php endif; ?>
 </section>
 
+<!-- ================= ALL TAGS (complete directory) =================
+     Every tag page gets a second dofollow inlink from this hub, so no tag
+     archive is left with only its single post-page inlink. -->
+<?php $allTags = get_popular_tags(1000); ?>
+<?php if ($allTags): ?>
+<section class="border-t border-line bg-surface">
+  <div class="mx-auto max-w-[96rem] px-6 py-14">
+    <p class="kicker text-accent">Browse by tag</p>
+    <h2 class="headline-md mt-3">Every tag in one place</h2>
+    <p class="mt-4 max-w-2xl text-muted">
+      Niche topics in a single list — jump straight to the exact subject you are after.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-2.5">
+      <?php foreach ($allTags as $t): ?>
+        <a href="<?= url('/tag/' . $t['slug']) ?>"
+           class="rounded-md border border-line bg-paper px-3.5 py-1.5 text-sm font-bold text-ink-soft transition hover:border-accent hover:bg-accent hover:text-white">
+          #<?= e($t['name']) ?>
+        </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
 <?php require __DIR__ . '/includes/footer.php'; ?>

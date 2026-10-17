@@ -290,10 +290,13 @@ function seo_jsonld_render(): void
             'name'     => $siteName,
             'url'      => $siteUrl,
             'description' => setting('site_description'),
+            // SearchAction keeps only schema.org-valid properties: `query-input`
+            // was a Google Sitelinks-searchbox extension (never in the schema.org
+            // vocabulary; feature retired by Google Sept 2024) and is rejected by
+            // schema.org validators.
             'potentialAction' => [
-                '@type'       => 'SearchAction',
-                'target'      => ['@type' => 'EntryPoint', 'urlTemplate' => $siteUrl . '/search?q={search_term_string}'],
-                'query-input' => 'required name=search_term_string',
+                '@type'  => 'SearchAction',
+                'target' => ['@type' => 'EntryPoint', 'urlTemplate' => $siteUrl . '/search?q={search_term_string}'],
             ],
         ],
         [
@@ -332,6 +335,67 @@ function seo_jsonld_breadcrumb(array $crumbs): void
         'itemListElement' => $items,
     ]);
     unset($n);
+}
+
+/* ---------------------------------------------------------------------
+ *  SEO — IndexNow (instant change notification to participating engines)
+ * --------------------------------------------------------------------- */
+
+/**
+ * IndexNow API key — the 32-hex key file shipped at the site root.
+ * The file doubles as the single source of truth: its name is the key and
+ * its content is the same string (what engines verify). No key file →
+ * null, and submissions stay disabled instead of failing.
+ */
+function indexnow_key(): ?string
+{
+    static $done = false;
+    static $key  = null;
+    if (!$done) {
+        $done  = true;
+        $files = glob(ROOT_PATH . '/' . str_repeat('[0-9a-f]', 32) . '.txt') ?: [];
+        $key   = $files ? (string) pathinfo($files[0], PATHINFO_FILENAME) : null;
+    }
+    return $key;
+}
+
+/**
+ * Ping IndexNow with URLs that just changed (best-effort).
+ * Never throws and never blocks page rendering longer than ~3s: search
+ * engines re-fetch the key file themselves to validate each submission,
+ * so a dropped ping is merely retried by the next change/deploy anyway.
+ */
+function indexnow_submit(array $urls): void
+{
+    $key = indexnow_key();
+    if ($key === null || $urls === []) {
+        return;
+    }
+    $host = (string) (parse_url(SITE_URL, PHP_URL_HOST) ?: '');
+    // Never ping from a local/dev install — engines would receive localhost URLs.
+    if ($host === '' || str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
+        return;
+    }
+    $payload = json_encode([
+        'host'        => $host,
+        'key'         => $key,
+        'keyLocation' => rtrim(SITE_URL, '/') . '/' . $key . '.txt',
+        'urlList'     => array_values(array_unique($urls)),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if ($payload === false || !function_exists('curl_init')) {
+        return;
+    }
+    $ch = curl_init('https://api.indexnow.org/indexnow');
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 2,
+        CURLOPT_TIMEOUT        => 3,
+    ]);
+    curl_exec($ch);   // response intentionally discarded — fire-and-forget
+    curl_close($ch);
 }
 
 /* ---------------------------------------------------------------------
