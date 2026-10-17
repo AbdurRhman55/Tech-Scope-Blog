@@ -26,9 +26,11 @@ $reqPage  = max(1, (int) ($_GET['page'] ?? 1));
 
 // Parent archives include their subcategories' posts (self + descendants)
 $catIds   = category_descendant_ids((int) $category['id']);
-$children = db()->prepare('SELECT name, slug FROM categories WHERE parent_id = ? ORDER BY sort_order, name');
-$children->execute([(int) $category['id']]);
-$children = $children->fetchAll();
+// Child chips only link archives that hold posts — empty ones stay noindex (top of file).
+$children = array_values(array_filter(
+    get_categories(true),
+    static fn(array $c): bool => (int) $c['parent_id'] === (int) $category['id']
+));
 
 $total    = count_posts($catIds);
 $pages    = max(1, (int) ceil($total / $perPage));

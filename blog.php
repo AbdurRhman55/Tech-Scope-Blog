@@ -31,7 +31,7 @@ require __DIR__ . '/includes/header.php';
 $crumbs = ['Home' => '/', 'All Articles' => '/blog'];
 require __DIR__ . '/includes/breadcrumb.php';
 
-$allCategories = get_categories();
+$allCategories = get_categories(true);
 ?>
 
 <section class="relative overflow-hidden border-b border-line bg-surface">

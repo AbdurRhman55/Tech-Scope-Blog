@@ -494,7 +494,7 @@ function get_post_comments(int $postId): array
 }
 
 /** All categories with published post counts (own + every descendant's) */
-function get_categories(): array
+function get_categories(bool $onlyWithPosts = false): array
 {
     $rows = db()->query(
         "SELECT c.*, COUNT(p.id) AS post_count
@@ -536,6 +536,12 @@ function get_categories(): array
     }
     unset($r);
 
+    // Public listings link only archives that hold posts; empty archives stay
+    // noindex (category.php) and must not be advertised across the site.
+    if ($onlyWithPosts) {
+        $rows = array_values(array_filter($rows, static fn(array $r): bool => (int) $r['post_count'] > 0));
+    }
+
     return $rows;
 }
 
@@ -544,10 +550,10 @@ function get_categories(): array
  * array. Capped at 3 levels for display; cycles are unreachable from the root
  * and additionally stopped by the level cap.
  */
-function get_category_tree(int $maxDepth = 3): array
+function get_category_tree(int $maxDepth = 3, bool $onlyWithPosts = false): array
 {
     $kids = [];
-    foreach (get_categories() as $c) {
+    foreach (get_categories($onlyWithPosts) as $c) {
         $kids[(int) ($c['parent_id'] ?? 0)][] = $c;
     }
     $build = function (int $parentId, int $level) use (&$build, $kids, $maxDepth): array {

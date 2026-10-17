@@ -12,8 +12,8 @@ $_page_title = $page_title ?? null;
 $_page_desc  = $page_desc ?? null;
 $_og_type    = $og_type ?? 'website';
 $_og_image   = $og_image ?? null;
-$_categories = get_categories();
-$_navTree    = get_category_tree();
+$_categories = get_categories(true);    // public lists: only archives that hold posts
+$_navTree    = get_category_tree(3, true);
 // parents → children ( dynamic, DB-driven )
 $_current    = basename( $_SERVER[ 'SCRIPT_NAME' ] );
 

@@ -5,7 +5,7 @@
 
 require_once __DIR__ . '/includes/functions.php';
 
-$categoryTree = get_category_tree();   // parents with nested subcategories
+$categoryTree = get_category_tree(3, true);   // parents with nested subcategories (populated only)
 $categories   = get_categories();      // for count / empty check
 
 $page_title = 'All Categories | ' . setting('site_name', SITE_NAME);

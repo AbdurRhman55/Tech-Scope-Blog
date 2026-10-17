@@ -5,7 +5,7 @@
 
 require_once __DIR__ . '/includes/functions.php';
 
-$categories = get_categories();
+$categories = get_categories(true);
 $recent     = get_posts(1, 50);
 
 $staticPages = [

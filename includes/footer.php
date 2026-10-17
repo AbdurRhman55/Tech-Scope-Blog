@@ -9,7 +9,7 @@ $_fName = setting('site_name', SITE_NAME);
 $_fDesc = trim((string) setting('site_description', ''));
 $_fCats = isset($_categories) && is_array($_categories)
     ? $_categories
-    : (function_exists('get_categories') ? get_categories() : []);
+    : (function_exists('get_categories') ? get_categories(true) : []);
 
 /*
  * Social profiles — only real http(s) URLs are rendered. Empty values or

@@ -59,7 +59,7 @@ require __DIR__ . '/includes/header.php';
 
     <h2>What we cover</h2>
     <ul>
-      <?php foreach ($categories as $cat): ?>
+      <?php foreach (array_filter($categories, static fn(array $c): bool => (int) $c['post_count'] > 0) as $cat): ?>
         <li>
           <a href="<?= url('/category/' . $cat['slug']) ?>"><?= e($cat['name']) ?></a>
           <?php if ($cat['description']): ?> — <?= e($cat['description']) ?><?php endif; ?>
