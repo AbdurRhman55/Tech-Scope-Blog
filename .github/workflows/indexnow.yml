@@ -29,7 +29,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # The filename IS the key — strip the .txt extension or every URL
+          # below would be built as ".../{key}.txt.txt" (404 forever).
           KEY=$(find . -maxdepth 1 -regextype posix-extended -regex './[0-9a-f]{32}\.txt' -printf '%f\n' | head -1 || true)
+          KEY="${KEY%.txt}"
           if [ -z "$KEY" ]; then
             echo "ERROR: no {32-hex}.txt IndexNow key file at the repository root" >&2
             exit 1
