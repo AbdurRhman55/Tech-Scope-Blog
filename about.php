@@ -10,7 +10,7 @@ $totalPosts = count_posts();
 $authors     = db()->query("SELECT COUNT(*) FROM users WHERE status = 1")->fetchColumn();
 
 $page_title = 'About Us | ' . setting('site_name', SITE_NAME);
-$page_desc  = 'Learn about ' . setting('site_name') . ' — our mission, topics and the team behind the articles.';
+$page_desc  = 'Learn about ' . setting('site_name') . ' — our mission, the topics we cover and the people behind the articles, plus what you will find on the blog and how to get started.';
 require __DIR__ . '/includes/header.php';
 ?>
 

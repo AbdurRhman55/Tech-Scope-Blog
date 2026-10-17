@@ -9,7 +9,7 @@ $categoryTree = get_category_tree();   // parents with nested subcategories
 $categories   = get_categories();      // for count / empty check
 
 $page_title = 'All Categories | ' . setting('site_name', SITE_NAME);
-$page_desc  = 'Browse every topic covered on ' . setting('site_name', SITE_NAME) . ' — AI, technology, data science, programming, careers and more.';
+$page_desc  = 'Browse every topic covered on ' . setting('site_name', SITE_NAME) . ' — AI, technology, data science, programming, careers and more, with a dedicated page for each subject.';
 
 seo_jsonld_breadcrumb(['Home' => '/', 'Categories' => '/categories']);
 

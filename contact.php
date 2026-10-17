@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Contact Us | ' . setting('site_name', SITE_NAME);
-$page_desc  = 'Get in touch with the ' . setting('site_name') . ' team — questions, feedback, guest posts and partnerships.';
+$page_desc  = 'Get in touch with the ' . setting('site_name') . ' team — questions, feedback, guest posts, partnership ideas or any suggestion to help us improve; we read every message.';
 require __DIR__ . '/includes/header.php';
 ?>
 

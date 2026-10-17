@@ -8,7 +8,8 @@
 require_once __DIR__ . '/functions.php';
 
 $page_title = $legal_title . ' | ' . setting('site_name', SITE_NAME);
-$page_desc  = $legal_title . ' for ' . setting('site_name', SITE_NAME) . '.';
+$page_desc  = 'Read the ' . $legal_title . ' for ' . setting('site_name', SITE_NAME)
+    . ' — terms of use, disclaimers, privacy and the rules that apply when you browse and interact with our website.';
 require __DIR__ . '/header.php';
 ?>
 

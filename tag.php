@@ -63,7 +63,8 @@ $stmt->execute([(int) $tag['id']]);
 $posts = $stmt->fetchAll();
 
 $page_title = '#' . $tag['name'] . ' — Tag | ' . setting('site_name', SITE_NAME);
-$page_desc  = 'All articles tagged with "' . $tag['name'] . '".';
+$page_desc  = 'Browse articles tagged "' . $tag['name'] . '" on ' . setting('site_name', SITE_NAME)
+    . ' — practical guides, tutorials and expert insights on AI, technology, programming and more.';
 
 seo_jsonld_breadcrumb([
     'Home'      => '/',

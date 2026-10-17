@@ -36,7 +36,14 @@ if ($total === 0) {
 }
 
 $page_title = $author['name'] . ' — Author | ' . setting('site_name', SITE_NAME);
-$page_desc  = $author['bio'] ?: ('Articles written by ' . $author['name'] . '.');
+$author_bio = trim((string) ($author['bio'] ?? ''));
+if (mb_strlen($author_bio) > 160) {
+    $author_bio = rtrim(mb_substr($author_bio, 0, 160));
+}
+$page_desc  = mb_strlen($author_bio) >= 110
+    ? $author_bio
+    : 'Articles by ' . $author['name'] . ' on ' . setting('site_name', SITE_NAME)
+        . ' — practical guides, tutorials and expert insights on AI, technology, data science, programming and digital skills.';
 
 seo_jsonld_breadcrumb([
     'Home'                 => '/',

@@ -16,7 +16,7 @@ $page      = $reqPage;
 $posts     = get_posts($page, $perPage);
 
 $page_title = 'Blog — All Articles | ' . setting('site_name', SITE_NAME);
-$page_desc  = 'Browse all published articles on AI, technology, data science, programming and career guidance.';
+$page_desc  = 'Browse all published articles on AI, technology, data science, programming and career guidance — fresh tutorials, in-depth guides and practical insights.';
 
 seo_jsonld_breadcrumb(['Home' => '/', 'All Articles' => '/blog']);
 seo_jsonld_add([

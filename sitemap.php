@@ -20,7 +20,8 @@ $staticPages = [
 ];
 
 $page_title = 'Sitemap | ' . setting('site_name', SITE_NAME);
-$page_desc  = 'Complete index of all pages and articles on ' . setting('site_name', SITE_NAME) . '.';
+$page_desc  = 'Complete index of all pages and articles on ' . setting('site_name', SITE_NAME)
+    . ' — jump directly to any blog post, topic tag, category or key page in one click.';
 require __DIR__ . '/includes/header.php';
 ?>
 
