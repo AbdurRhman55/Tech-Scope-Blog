@@ -91,6 +91,13 @@ $_assetVer = function_exists('asset_version') ? asset_version() : (string) @file
     <link rel="stylesheet" href="<?= url('/assets/css/app.css') ?>?v=<?= e($_assetVer) ?>">
     <!-- Google Search Console HTML-tag verification (keep permanently; removing it un-verifies the property) -->
     <meta name="google-site-verification" content="4igcp7jEnpYf5FrozZHeUR1_3cb_1W9yV1bmzwmcJD0" />
+    <?php
+    // Ahrefs Web Analytics — production only, so localhost/dev traffic never
+    // pollutes the project's visitor data (the key itself is public by design).
+    $_ahrefsHost = (string) (parse_url(SITE_URL, PHP_URL_HOST) ?: '');
+    if ($_ahrefsHost !== '' && !in_array($_ahrefsHost, ['localhost', '127.0.0.1'], true)): ?>
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="IBUIh32z6rOf++Tf5I9v3Q" async></script>
+    <?php endif; unset($_ahrefsHost); ?>
 </head>
 
 <body class="antialiased"
