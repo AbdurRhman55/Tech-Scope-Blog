@@ -128,10 +128,12 @@ if ( $wantsSession && session_status() === PHP_SESSION_NONE ) {
     ] );
     session_name( SESSION_NAME );
     session_start();
-} elseif ( session_status() !== PHP_SESSION_ACTIVE
-    && ( $_SERVER[ 'REQUEST_METHOD' ] ?? 'GET' ) === 'GET'
-    && php_sapi_name() !== 'cli' ) {
-    // Sessionless public page: let shared caches (CDN edge) store it briefly.
-    // Fresh content is never more than this old (purge cache after big edits).
-    header( 'Cache-Control: public, max-age=300, s-maxage=300' );
+}
+
+// Never let the CDN cache HTML. Admin edits (posts, settings, images) must
+// appear instantly — a 5-minute edge cache made saved changes look reverted
+// on the public pages. Static assets (CSS, images) are served by the
+// webserver directly and keep their own caching.
+if ( php_sapi_name() !== 'cli' && ! headers_sent() ) {
+    header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
 }

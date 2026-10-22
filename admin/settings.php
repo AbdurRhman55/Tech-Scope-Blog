@@ -22,9 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_POST['action'] ?? '') === 'save') {
         $stmt = $pdo->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)
                                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+        $boolKeys = ['allow_comments', 'comments_moderation'];
         foreach ($groups as $keys) {
             foreach ($keys as $key) {
-                if (isset($_POST[$key]) || $key === 'site_logo' || $key === 'site_favicon') {
+                if (in_array($key, $boolKeys, true)) {
+                    // Unchecked checkboxes never appear in $_POST — persist the
+                    // "off" state explicitly, otherwise disabling a switch
+                    // silently kept the old value (looked like a revert).
+                    $stmt->execute([$key, isset($_POST[$key]) ? '1' : '0']);
+                } elseif (isset($_POST[$key]) || $key === 'site_logo' || $key === 'site_favicon') {
                     $stmt->execute([$key, trim((string) ($_POST[$key] ?? ''))]);
                 }
             }

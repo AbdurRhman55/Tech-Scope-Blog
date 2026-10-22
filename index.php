@@ -83,7 +83,7 @@ require __DIR__ . '/includes/header.php';
       <div class="absolute -left-3 -top-3 hidden h-full w-full rounded-2xl border border-line sm:block"></div>
       <a href="<?= url('/post/' . $featured['slug']) ?>" class="group relative block w-full overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_30px_60px_-40px_rgba(16,19,25,.5)]">
         <img src="<?= e(post_image($featured)) ?>" alt="<?= e($featured['title']) ?>"
-             class="h-72 w-full object-cover transition-transform duration-700 group-hover:scale-[1.04] lg:h-[430px]">
+             class="h-56 w-full object-cover transition-transform duration-700 group-hover:scale-[1.04] lg:h-[340px]">
         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6 pt-16">
           <p class="kicker text-white/80">Editor's pick</p>
           <p class="mt-1.5 font-display text-xl font-semibold text-white"><?= e(mb_substr($featured['title'], 0, 60)) ?>…</p>
